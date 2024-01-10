@@ -41,5 +41,4 @@ public class PlayerStats {
         }
         this.shuffle = shuffle;
     }
-
 }

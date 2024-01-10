@@ -7,19 +7,20 @@ import app.audio.Collections.Podcast;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
+import app.monetization.RevenueService;
 import app.player.Player;
 import app.user.User;
 import app.user.Artist;
 import app.user.Host;
 import app.user.UserAbstract;
-import app.user.Event;
-import app.user.Merchandise;
-import app.user.Announcement;
-import app.user.ArtistRevenue;
-import app.Stats.StatsTemplate;
-import app.Stats.UserStats;
-import app.Stats.ArtistStats;
-import app.Stats.HostStats;
+import app.pages.pageContent.Event;
+import app.pages.pageContent.Merchandise;
+import app.pages.pageContent.Announcement;
+import app.monetization.ArtistRevenue;
+import app.statistics.StatsTemplate;
+import app.statistics.UserStats;
+import app.statistics.ArtistStats;
+import app.statistics.HostStats;
 import fileio.input.CommandInput;
 import fileio.input.EpisodeInput;
 import fileio.input.PodcastInput;
@@ -41,7 +42,6 @@ import java.util.stream.Stream;
 import java.util.LinkedHashMap;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
-import lombok.Setter;
 
 /**
  * The type Admin.
@@ -50,7 +50,8 @@ public final class Admin {
     private final List<User> users = new ArrayList<>();
     @Getter
     private List<Artist> artists = new ArrayList<>();
-    @Getter @Setter //Listă de artiști care au cel puțin un play pe platformă
+    @Getter
+    //Listă de artiști care au cel puțin un play sau vânzări pe platformă
     private Set<Artist> artistsListen = new HashSet<>();
     @Getter
     private List<Host> hosts = new ArrayList<>();
@@ -67,6 +68,7 @@ public final class Admin {
     private final int dateDayLowerLimit = 1;
     private final int dateDayHigherLimit = 31;
     private final int dateFebHigherLimit = 28;
+    private final double hundred = 100.0; // Face parte din formula pt monetizare
     private static Admin instance;
 
     private Admin() {
@@ -886,33 +888,71 @@ public final class Admin {
     }
 
     /**
+     * Verifică existența unui artist în sistem și îl adaugă dacă nu există.
+     * Această metodă verifică dacă un artist cu numele dat este deja prezent în lista de artiști
+     *         din Admin. Dacă artistul nu există, se creează un nou obiect artist și se adaugă
+     *         atât în lista generală a artiștilor cât și în lista artiștilor cu melodii ascultate,
+     *         care au cel putin un Play pe platforma.
+     *
+     * @param artistName Numele artistului care trebuie verificat și eventual adăugat.
+     */
+    public void checkAndAddArtistToAdmin(final String artistName) {
+
+        // Verifică dacă artistul este deja înregistrat
+        Artist artist = getArtist(artistName);
+        if (artist == null) {
+            // Crează și adaugă un nou artist în lista de artiști dacă acesta nu există
+            Artist newArtist = new Artist(artistName, 0, "");
+            getArtists().add(newArtist);
+
+            // Adaugă noul artistul în lista 'artistListens'
+            getArtistsListen().add(newArtist);
+        } else {
+            // Adaugă artistul existent în lista 'artistListens'
+            getArtistsListen().add(artist);
+        }
+    }
+
+    /**
      * Calculează și returnează veniturile pentru fiecare artist.
      *
-     * @return O hartă care asociază fiecare artist cu un obiect {@link ArtistRevenue},
+     * @return O hartă care asociază fiecare artist cu un obiect ArtistRevenue,
      *         conținând detaliile veniturilor și clasamentul fiecărui artist.
      */
     public Map<Artist, ArtistRevenue> calculateArtistRevenues() {
         Map<Artist, ArtistRevenue> artistRevenues = new LinkedHashMap<>();
 
-        // Sortează artiștii în ordine alfabetică după numele lor
+        // Distribuie veniturile de la utilizatorii Premium
+        for (User user : users) {
+            if (user.isPremium()) {
+                RevenueService.getInstance().revenueFromPremiumListens(user);
+            }
+        }
+
+        // Sortează artiștii în funcție de veniturile totale, apoi alfabetic
         List<Artist> sortedArtists = new ArrayList<>(artistsListen);
-        sortedArtists.sort(Comparator.comparing(Artist::getUsername));
+        sortedArtists.sort((artist1, artist2) -> {
+            double totalRevenue1 = artist1.getSongRevenue() + artist1.getMerchRevenue();
+            double totalRevenue2 = artist2.getSongRevenue() + artist2.getMerchRevenue();
 
-        int ranking = 1; // Inițializează clasamentul
+            double revenueDifference = totalRevenue2 - totalRevenue1;
+            if (revenueDifference == 0) {
+                return artist1.getUsername().compareTo(artist2.getUsername());
+            }
+            return (int) Math.signum(revenueDifference);
+        });
 
+        // Construiește harta de venituri a artiștilor
+        int ranking = 1;
         for (Artist artist : sortedArtists) {
-
-            double songRevenue = 0.0; // Calcul venituri din cântece
-            double merchRevenue = 0.0; // Calcul venituri din merch
-            String mostProfitableSong = "N/A"; // Cea mai profitabilă melodie
+            double songRevenue = Math.round(artist.getSongRevenue() * hundred) / hundred;
+            double merchRevenue = Math.round(artist.getMerchRevenue() * hundred) / hundred;
+            String mostProfitableSong = artist.determineMostProfitableSong();
 
             ArtistRevenue revenue = new ArtistRevenue(songRevenue, merchRevenue, ranking,
-                                               mostProfitableSong);
-
+                                                   mostProfitableSong);
             artistRevenues.put(artist, revenue);
-
-            ranking++; // Incrementează clasamentul pentru următorul artist
-
+            ranking++;
         }
 
         return artistRevenues;

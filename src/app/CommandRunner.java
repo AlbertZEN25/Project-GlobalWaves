@@ -6,7 +6,7 @@ import app.audio.Collections.PodcastOutput;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
 import app.user.Artist;
-import app.user.ArtistRevenue;
+import app.monetization.ArtistRevenue;
 import app.user.Host;
 import app.user.User;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -785,46 +785,6 @@ public final class CommandRunner {
     }
 
     /**
-     * Procesează finalizarea programului și calculează veniturile artiștilor, generând
-     *            un raport de monetizare.
-     *
-     * <p>Nu există un input specific pentru această comandă; raportul este generat automat
-     *           la finalul fiecărei rulări.</p>
-     *
-     * @return Un ObjectNode ce conține veniturile calculate și alte informații relevante
-     *          pentru fiecare artist.
-     */
-    public static ObjectNode endProgram() {
-        // Calculează veniturile fiecărui artist
-        Map<Artist, ArtistRevenue> artistRevenues = admin.calculateArtistRevenues();
-
-        // Creează un ObjectNode pentru a stoca rezultatele finale
-        ObjectNode resultNode = OBJECT_MAPPER.createObjectNode();
-
-        // Parcurge harta de venituri a artiștilor pentru a construi raportul
-        for (Map.Entry<Artist, ArtistRevenue> entry : artistRevenues.entrySet()) {
-            // Extrage numele artistului și ArtistRevenue asociat acestuia
-            String artistName = entry.getKey().getUsername();
-            ArtistRevenue revenue = entry.getValue();
-
-            ObjectNode artistNode = OBJECT_MAPPER.createObjectNode();
-            artistNode.put("songRevenue", revenue.getSongRevenue());
-            artistNode.put("merchRevenue", revenue.getMerchRevenue());
-            artistNode.put("ranking", revenue.getRanking());
-            artistNode.put("mostProfitableSong", revenue.getMostProfitableSong());
-
-            resultNode.set(artistName, artistNode);
-        }
-
-        // Creează un ObjectNode pentru a stoca comanda și rezultatul final
-        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
-        objectNode.put("command", "endProgram");
-        objectNode.set("result", resultNode);
-
-        return objectNode;
-    }
-
-    /**
      * Această metodă returnează statistici despre activitatea muzicală a utilizatorului,
      *          inclusiv topul melodiilor, genurilor, artiștilor, albumelor și episoadelor
      *          de podcast, în funcție de tipul de utilizator (user, artist sau host).
@@ -850,6 +810,182 @@ public final class CommandRunner {
             // Altfel, includem resultNode sub cheia "result"
             objectNode.set("result", resultNode);
         }
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda pentru cumpărarea unei subscripții Premium de către un utilizator.
+     *
+     * @param commandInput the command input
+     * @return the objectNode care conține detalii despre comanda efectuată, inclusiv
+     *               numele user-ului, timestamp-ul și mesajul generat în urma executării comenzii.
+     */
+    public static ObjectNode buyPremium(final CommandInput commandInput) {
+        // Obține obiectul utilizatorului pe baza numelui de utilizator din comandă
+        User user = admin.getUser(commandInput.getUsername());
+
+        // Execută operația de cumpărare a abonamentului Premium și obține mesajul rezultat
+        String message = user.buyPremium();
+
+        // Creează un nod JSON pentru a stoca și returna detaliile comenzii și rezultatul acesteia
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda pentru anularea abonamentului premium al unui utilizator.
+     *
+     * @param commandInput the command input
+     * @return the objectNode care conține detalii despre comanda efectuată, inclusiv
+     *               numele user-ului, timestamp-ul și mesajul generat în urma executării comenzii.
+     */
+    public static ObjectNode cancelPremium(final CommandInput commandInput) {
+        // Obține obiectul user-ului pe baza numelui de utilizator specificat în comandă
+        User user = admin.getUser(commandInput.getUsername());
+
+        // Execută operația de anulare a abonamentului premium și obține mesajul rezultat
+        String message = user.cancelPremium();
+
+        // Creează un nod JSON pentru a stoca și returna detaliile comenzii și rezultatul acesteia
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda de adăugare a unei reclame în coada de redare a utilizatorului.
+     *
+     * @param commandInput Informațiile primite de la comandă.
+     * @return the objectNode care conține detaliile despre comanda efectuată și
+     *                 mesajul generat.
+     */
+    public static ObjectNode adBreak(final CommandInput commandInput) {
+        // Obținerea user-ului pe baza numelui de utilizator din comandă
+        User user = admin.getUser(commandInput.getUsername());
+        String message;
+
+        // Verificarea dacă utilizatorul există
+        if (user == null) {
+            message = "The username " + commandInput.getUsername() + " doesn't exist.";
+        } else {
+            message = user.adBreak(commandInput.getPrice());
+        }
+
+        // Crearea răspunsului
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda de cumpărare a unui produs de merch (merchandise) de către un utilizator.
+     *
+     * @param commandInput the command input
+     * @return the objectNode care reprezintă răspunsul procesat pentru comanda buyMerch.
+     */
+    public static ObjectNode buyMerch(final CommandInput commandInput) {
+        // Obține user-ul bazat pe numele de utilizator furnizat în comandă
+        User user = admin.getUser(commandInput.getUsername());
+        String message;
+
+        // Verifică dacă utilizatorul există
+        if (user == null) {
+            message = "The username " + commandInput.getUsername() + " doesn't exist.";
+        } else {
+            // Încearcă să efectueze cumpărarea de merch și obține mesajul corespunzător
+            message = user.buyMerch(commandInput.getName());
+        }
+
+        // Creează un obiect ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda de vizualizare a produselor de merch cumpărate de un utilizator.
+     *
+     * @param commandInput the command input
+     * @return the objectNode care reprezintă răspunsul procesat pentru comanda de
+     *               vizualizare merch.
+     */
+    public static ObjectNode seeMerch(final CommandInput commandInput) {
+        // Obținerea user-ului pe baza numelui de utilizator din comandă
+        User user = admin.getUser(commandInput.getUsername());
+
+        // Creează un obiect ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+
+        // Verifică dacă utilizatorul există
+        if (user == null) {
+            objectNode.put("message", "The username " + commandInput.getUsername()
+                        + " doesn't exist.");
+        } else {
+            // Adaugă lista de merch-uri cumpărate in result
+            List<String> purchasedMerchNames = user.getPurchasedMerchNames();
+            objectNode.set("result", OBJECT_MAPPER.valueToTree(purchasedMerchNames));
+        }
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează finalizarea programului și calculează veniturile artiștilor, generând
+     *            un raport de monetizare.
+     *
+     * <p>Nu există un input specific pentru această comandă; raportul este generat automat
+     *           la finalul fiecărei rulări.</p>
+     *
+     * @return Un ObjectNode ce conține veniturile calculate și alte informații relevante
+     *          pentru fiecare artist.
+     */
+    public static ObjectNode endProgram() {
+        // Calculează veniturile fiecărui artist
+        Map<Artist, ArtistRevenue> artistRevenues = admin.calculateArtistRevenues();
+
+        // Creează un ObjectNode pentru a stoca rezultatele finale
+        ObjectNode resultNode = OBJECT_MAPPER.createObjectNode();
+
+        // Parcurge harta de venituri a artiștilor pentru a construi raportul
+        for (Map.Entry<Artist, ArtistRevenue> entry : artistRevenues.entrySet()) {
+            // Extrage numele artistului și ArtistRevenue asociat acestuia
+            String artistName = entry.getKey().getUsername();
+            ArtistRevenue revenue = entry.getValue();
+
+            ObjectNode artistNode = OBJECT_MAPPER.createObjectNode();
+            artistNode.put("merchRevenue", revenue.getMerchRevenue());
+            artistNode.put("songRevenue", revenue.getSongRevenue());
+            artistNode.put("ranking", revenue.getRanking());
+            artistNode.put("mostProfitableSong", revenue.getMostProfitableSong());
+
+            resultNode.set(artistName, artistNode);
+        }
+
+        // Creează un ObjectNode pentru a stoca comanda și rezultatul final
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", "endProgram");
+        objectNode.set("result", resultNode);
 
         return objectNode;
     }

@@ -6,9 +6,14 @@ import app.audio.Collections.PlaylistOutput;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import app.audio.LibraryEntry;
+import app.monetization.RevenueService;
+import app.pages.ArtistPage;
 import app.pages.HomePage;
 import app.pages.LikedContentPage;
 import app.pages.Page;
+import java.util.stream.Collectors;
+
+import app.pages.pageContent.Merchandise;
 import app.player.Player;
 import app.player.PlayerStats;
 import app.searchBar.Filters;
@@ -37,15 +42,21 @@ public final class User extends UserAbstract {
     private boolean status;
     private final SearchBar searchBar;
     private boolean lastSearched;
-    @Getter
-    @Setter
+    @Getter @Setter
     private Page currentPage;
-    @Getter
-    @Setter
+    @Getter @Setter
     private HomePage homePage;
-    @Getter
-    @Setter
+    @Getter @Setter
     private LikedContentPage likedContentPage;
+    @Getter
+    private boolean isPremium;
+    @Getter // Lista pentru a urmări melodiile ascultate pe modul Premium
+    private List<Song> songsListenedPremium = new ArrayList<>();
+    @Getter // Lista pentru a urmări melodiile ascultate între ad break-uri
+    private List<Song> songsListenedFree = new ArrayList<>();
+    @Getter // Lista de merch-uri cumpărate de utilizator.
+    private final ArrayList<Merchandise> purchasedMerch = new ArrayList<>();
+
 
     /**
      * Instantiates a new User.
@@ -63,6 +74,7 @@ public final class User extends UserAbstract {
         searchBar = new SearchBar(username);
         lastSearched = false;
         status = true;
+        isPremium = false;
 
         homePage = new HomePage(this);
         currentPage = homePage;
@@ -162,58 +174,44 @@ public final class User extends UserAbstract {
             return "You can't load an empty audio collection!";
         }
 
-
         player.setSource(searchBar.getLastSelected(), searchBar.getLastSearchType());
+        player.getSource().resetNextAdBreak();
         searchBar.clearSelection();
 
         player.pause();
 
-            // Obține melodia/episodul curent din player
-            AudioFile audioFile = player.getCurrentAudioFile();
+        // Obține melodia/episodul curent din player
+        AudioFile audioFile = player.getCurrentAudioFile();
 
-            // Incrementează numărul total de ascultări ale melodiei/episodului
-            audioFile.incrementListenCount();
+        // Incrementează numărul total de ascultări ale melodiei/episodului
+        audioFile.incrementListenCount();
 
-            // Incrementează numărul de ascultări ale fisierului audio pentru utilizatorul curent
-            audioFile.incrementUserListenCount(this.getUsername());
+        // Incrementează numărul de ascultări ale fisierului audio pentru utilizatorul curent
+        audioFile.incrementUserListenCount(this.getUsername());
 
-            // Verifică și adaugă artistul în lista de artiști dacă lipsește
-            // Aceasta asigură că orice artist cu melodii ascultate este inclus în lista
-            //                                                                        artistsListen
-        if (player.getCurrentAudioFile() instanceof Song) {
+
+        // Verifică dacă fișierul audio curent din player este o melodie
+        if (player.getType().equals("song") || player.getType().equals("playlist")
+                || player.getType().equals("album")) {
+            // Transformă fișierul audio curent într-un obiect de tipul 'Song'
             Song currentSong = (Song) player.getCurrentAudioFile();
-            checkAndAddArtistToAdmin(currentSong.getArtist());
+
+            // Obține numele artistului melodiei curente
+            String artistName = currentSong.getArtist();
+
+            // Verifică și adaugă artistul în lista de artiști dacă acesta nu este deja prezent
+            Admin.getInstance().checkAndAddArtistToAdmin(artistName);
+
+            // Verifica daca user-ul este Premium și adaugă melodia curentă în lista pentru
+            //          monetizarea Free sau Premium
+            if (isPremium) {
+                songsListenedPremium.add(currentSong);
+            } else {
+                songsListenedFree.add(currentSong);
+            }
         }
 
         return "Playback loaded successfully.";
-    }
-
-    /**
-     * Verifică existența unui artist în sistem și îl adaugă dacă nu există.
-     * Această metodă verifică dacă un artist cu numele dat este deja prezent în lista de artiști
-     * din Admin. Dacă artistul nu există, se creează un nou obiect artist și se adaugă
-     * atât în lista generală a artiștilor cât și în lista artiștilor cu melodii ascultate, care au
-     * cel putin un Play pe platforma.
-     *
-     * @param artistName Numele artistului care trebuie verificat și eventual adăugat.
-     */
-    private void checkAndAddArtistToAdmin(final String artistName) {
-        // Obține instanța Admin pentru a avea acces la toate informațiile
-        Admin adminInstance = Admin.getInstance();
-
-        // Verifică dacă artistul este deja înregistrat
-        Artist artist = adminInstance.getArtist(artistName);
-        if (artist == null) {
-            // Crează și adaugă un nou artist în lista de artiști dacă acesta nu există
-            Artist newArtist = new Artist(artistName, /* age */ 0, /* city */ "");
-            adminInstance.getArtists().add(newArtist);
-
-            // Adaugă artistul în lista artiștilor cu melodii ascultate
-            adminInstance.getArtistsListen().add(adminInstance.getArtist(artistName));
-        } else {
-            // Adaugă artistul existent în lista artiștilor cu melodii ascultate
-            adminInstance.getArtistsListen().add(artist);
-        }
     }
 
     /**
@@ -635,5 +633,125 @@ public final class User extends UserAbstract {
         }
 
         player.simulatePlayer(time, this.getUsername());
+    }
+
+    /**
+     * Cumpără un abonament Premium pentru utilizator.
+     * Această metodă schimbă statusul utilizatorului de la normal la Premium dacă acesta nu este
+     *            deja un utilizator Premium.
+     *
+     * @return Un mesaj care indică dacă utilizatorul a cumpărat cu succes abonamentul Premium sau
+     *              dacă era deja un utilizator Premium.
+     */
+    public String buyPremium() {
+        // Verifică dacă utilizatorul este deja un utilizator Premium
+        if (isPremium) {
+            return getUsername() + " is already a premium user.";
+        }
+
+        // Setează statusul utilizatorului la Premium
+        isPremium = true;
+
+        // Returnează un mesaj de confirmare a cumpărării abonamentului Premium
+        return getUsername() + " bought the subscription successfully.";
+    }
+
+    /**
+     * Anulează abonamentul Premium al utilizatorului.
+     * Această metodă schimbă statusul utilizatorului de la Premium la normal și efectuează
+     *           operații necesare, cum ar fi distribuirea veniturilor acumulate din ascultările
+     *           efectuate în mod Premium și resetarea listei de melodii ascultate.
+     *
+     * @return Un mesaj care indică dacă utilizatorul și-a anulat cu succes abonamentul Premium sau
+     *              dacă nu era un utilizator Premium.
+     */
+    public String cancelPremium() {
+        // Verifică dacă utilizatorul este în prezent un utilizator Premium
+        if (!isPremium) {
+            return getUsername() + " is not a premium user.";
+        }
+        // Setează statusul utilizatorului la ne-Premium/normal
+        isPremium = false;
+
+        // Distribuie veniturile acumulate din ascultările utilizatorului Premium
+        RevenueService.getInstance().revenueFromPremiumListens(this);
+
+        // Golește harta care conține melodiile ascultate în mod Premium
+        songsListenedPremium.clear();
+
+        // Returnează un mesaj de confirmare a anulării abonamentului Premium
+        return getUsername() + " cancelled the subscription successfully.";
+    }
+
+    /**
+     * Gestionează adăugarea unei reclame în coada de redare a utilizatorului și
+     *         calculează distribuția veniturilor pentru artiști.
+     *
+     * @param adPrice Prețul asociat reclamei care va fi redată.
+     * @return String Un mesaj care indică dacă reclama a fost adăugată cu succes.
+     */
+    public String adBreak(final double adPrice) {
+        // Verifică dacă utilizatorul are muzică în redare
+        if (player.getCurrentAudioFile() == null) {
+            return getUsername() + " is not playing any music.";
+        } else {
+            // Adaugă reclama în coada de redare
+            player.getSource().setNextSongToAdBreak();
+
+            // Setează venitul din reclama curentă
+            RevenueService.getInstance().setAdPrice(adPrice);
+
+            return "Ad inserted successfully.";
+        }
+    }
+
+    /**
+     * Permite utilizatorului să cumpere merchandise de pe pagina unui artist.
+     *
+     * @param merchName Numele produsului de merch pe care utilizatorul dorește să-l cumpere.
+     * @return Un mesaj care indică rezultatul operațiunii de cumpărare.
+     */
+    public String buyMerch(final String merchName) {
+        // Verifică dacă pagina curentă este o pagină de artist
+        if (!(currentPage.getType().equals("artist"))) {
+            return "Cannot buy merch from this page.";
+        }
+
+        // Obține artistul paginii curente și caută produsul de merch specificat
+        Artist artist = ((ArtistPage) currentPage).getArtist();
+        Merchandise merchandise = artist.getMerch().stream()
+                .filter(m -> m.getName().equals(merchName))
+                .findFirst()
+                .orElse(null);
+
+        // Verifică dacă produsul de merch există
+        if (merchandise == null) {
+            return "The merch " + merchName + " doesn't exist.";
+        }
+
+        // Asigură înregistrarea artistului în sistem dacă nu există deja
+        Admin.getInstance().checkAndAddArtistToAdmin(artist.getUsername());
+
+        // Adaugă venitul generat de achiziție la totalul artistului
+        artist.addMerchRevenue(merchandise.getPrice());
+
+        // Adaugă produsul de merch în lista de merch cumpărat de utilizator
+        purchasedMerch.add(merchandise);
+
+        // Returnează un mesaj de confirmare
+        return this.getUsername() + " has added new merch successfully.";
+    }
+
+    /**
+     * Returnează numele tuturor produselor de merchandise cumpărate de utilizator.
+     *
+     * @return O listă de String-uri, fiecare reprezentând numele unui produs
+     *             de merchandise cumpărat.
+     */
+    public List<String> getPurchasedMerchNames() {
+        // Folosește un stream pentru a parcurge lista de merchandise cumpărat
+        return this.purchasedMerch.stream()
+                .map(Merchandise::getName)
+                .collect(Collectors.toList());
     }
 }

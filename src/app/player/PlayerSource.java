@@ -1,5 +1,6 @@
 package app.player;
 
+import app.Admin;
 import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
 import app.utils.Enums;
@@ -26,6 +27,8 @@ public class PlayerSource {
     @Getter
     private int remainedDuration;
     private final List<Integer> indices = new ArrayList<>();
+    // Flag pentru a ține evidența dacă urmează un Ad sau nu
+    private boolean isNextAdBreak = false;
 
     /**
      * Instantiates a new Player source.
@@ -81,6 +84,20 @@ public class PlayerSource {
     }
 
     /**
+     * Setează melodia "Ad Break" ca următoarea melodie de redat.
+     */
+    public void setNextSongToAdBreak() {
+        this.isNextAdBreak = true;
+    }
+
+    /**
+     * Resetează flagul după ce a fost redată reclama Ad
+     */
+    public void resetNextAdBreak() {
+        this.isNextAdBreak = false;
+    }
+
+    /**
      * Sets next audio file.
      *
      * @param repeatMode the repeat mode
@@ -90,6 +107,17 @@ public class PlayerSource {
     public boolean setNextAudioFile(final Enums.RepeatMode repeatMode,
                                     final boolean shuffle) {
         boolean isPaused = false;
+
+        if (isNextAdBreak) {
+            // Dacă următorul este Ad Break, îl setăm ca actual și resetăm flag-ul
+            this.audioFile = Admin.getInstance().getSongs().stream()
+                    .filter(song -> song.getName().equals("Ad Break"))
+                    .findFirst()
+                    .orElse(null);
+            this.remainedDuration = this.audioFile.getDuration();
+            this.isNextAdBreak = false; // Resetăm flag-ul
+            return false;
+        }
 
         if (type == Enums.PlayerSourceType.LIBRARY) {
             if (repeatMode != Enums.RepeatMode.NO_REPEAT) {
@@ -224,5 +252,4 @@ public class PlayerSource {
     public void setAudioFile(final AudioFile audioFile) {
         this.audioFile = audioFile;
     }
-
 }

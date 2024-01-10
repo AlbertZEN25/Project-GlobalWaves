@@ -1,4 +1,4 @@
-package app.user;
+package app.monetization;
 
 import lombok.Getter;
 import lombok.Setter;
@@ -13,7 +13,7 @@ import lombok.Setter;
 public class ArtistRevenue {
     private double songRevenue; // Veniturile artistului din melodii
     private double merchRevenue; // Veniturile artistului din vânzările de merch
-    private int ranking; // Clasamentul artistului pe platformă bazat pe venituri
+    private int ranking; // Rangul artistului pe platformă bazat pe venituri
     private String mostProfitableSong; // Melodia cea mai profitabilă a artistului
 
     public ArtistRevenue(final double songRevenue, final double merchRevenue, final int ranking,

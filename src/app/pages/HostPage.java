@@ -1,8 +1,9 @@
 package app.pages;
 
 import app.audio.Collections.Podcast;
-import app.user.Announcement;
+import app.pages.pageContent.Announcement;
 import app.user.Host;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -10,6 +11,8 @@ import java.util.List;
  * The type Host page.
  */
 public final class HostPage implements Page {
+    @Getter
+    private final String type = "host";
     private List<Podcast> podcasts;
     private List<Announcement> announcements;
 

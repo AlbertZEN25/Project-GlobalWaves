@@ -3,6 +3,7 @@ package app.pages;
 import app.audio.Collections.Playlist;
 import app.audio.Files.Song;
 import app.user.User;
+import lombok.Getter;
 
 import java.util.List;
 
@@ -10,6 +11,8 @@ import java.util.List;
  * The type Liked content page.
  */
 public final class LikedContentPage implements Page {
+    @Getter
+    private final String type = "LikedContent";
     /**
      * The Liked songs.
      */

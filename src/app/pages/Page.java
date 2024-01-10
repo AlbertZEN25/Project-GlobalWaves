@@ -10,4 +10,10 @@ public interface Page {
      * @return the current page string
      */
     String printCurrentPage();
+    /**
+     * Page type string.
+     *
+     * @return the string
+     */
+    String getType();
 }

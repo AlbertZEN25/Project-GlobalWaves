@@ -1,8 +1,12 @@
 package app.player;
 
+import app.Admin;
 import app.audio.Collections.AudioCollection;
 import app.audio.Files.AudioFile;
+import app.audio.Files.Song;
 import app.audio.LibraryEntry;
+import app.monetization.RevenueService;
+import app.user.User;
 import app.utils.Enums;
 import lombok.Getter;
 
@@ -176,6 +180,12 @@ public final class Player {
             while (elapsedTime >= source.getDuration()) {
                 elapsedTime -= source.getDuration();
                 next(username);
+                // Verificăm daca urmează a fi redat o reclamă (Ad)
+                if (source != null && source.getAudioFile().getName().equals("Ad Break")) {
+                    // Dacă urmează o reclamă (Ad), distribuie venitul reclamei
+                    User user = Admin.getInstance().getUser(username);
+                    RevenueService.getInstance().revenueFromFreeListens(user);
+                }
                 if (paused) {
                     break;
                 }
@@ -192,7 +202,9 @@ public final class Player {
      * @param username Numele de utilizator care ascultă melodia
      */
     public void next(final String username) {
+
         paused = source.setNextAudioFile(repeatMode, shuffle);
+
         if (repeatMode == Enums.RepeatMode.REPEAT_ONCE) {
             repeatMode = Enums.RepeatMode.NO_REPEAT;
         }
@@ -202,7 +214,8 @@ public final class Player {
         }
 
         // Verifică dacă fișierul audio curent este o melodie sau episod nefinalizat
-        if (source != null && source.getDuration() != 0) {
+        if (source != null && source.getDuration() != 0 && !source.getAudioFile().getName()
+                                                           .equals("Ad Break")) {
             // Obține fișierul audio current din player
             AudioFile audioFile = source.getAudioFile();
 
@@ -211,6 +224,24 @@ public final class Player {
 
             // Incrementează numărul de ascultări ale melodiei/episodului pentru user-ul curent
             audioFile.incrementUserListenCount(username);
+
+            // Verifică dacă fișierul audio curent este o melodie
+            if (getType().equals("song") || getType().equals("playlist")
+                      || getType().equals("album")) {
+                // Converteste fișierul audio la obiectul de tip 'Song'
+                Song currentSong = (Song) source.getAudioFile();
+
+                // Obține user-ul pe baza numelui de utilizator
+                User user = Admin.getInstance().getUser(username);
+
+                // Verifica daca user-ul este Premium și adaugă melodia curentă în lista pentru
+                //          monetizarea Free sau Premium
+                if (user.isPremium()) {
+                    user.getSongsListenedPremium().add(currentSong);
+                } else {
+                    user.getSongsListenedFree().add(currentSong);
+                }
+            }
         }
     }
 

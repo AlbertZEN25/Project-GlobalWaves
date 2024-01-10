@@ -1,4 +1,4 @@
-package app.Stats;
+package app.statistics;
 
 import app.audio.Collections.Podcast;
 import app.audio.Files.Episode;
@@ -9,11 +9,8 @@ import fileio.input.CommandInput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
-import java.util.stream.Collectors;
 
 /**
  * Clasa UserStats extinde StatsTemplate și implementează metodele pentru calculul și
@@ -49,6 +46,7 @@ public class UserStats extends StatsTemplate {
 
     /**
      * Verifică dacă utilizatorul are date statistice de afișat.
+     *
      * @param currentUser Utilizatorul curent evaluat.
      * @return true dacă există date statistice relevante, altfel false.
      */
@@ -60,7 +58,7 @@ public class UserStats extends StatsTemplate {
 
             // Verifică dacă utilizatorul are statistici de afisat
             if (!getTopArtists(user).isEmpty() || !getTopEpisodes(user).isEmpty()) {
-                return true; // Utilizatorul are date relevante de afișat
+                return true;
             }
         }
         return false;
@@ -70,21 +68,17 @@ public class UserStats extends StatsTemplate {
      * Calculează și returnează o hartă a artiștilor și numărului lor de ascultări de către un
      *            utilizator specific.
      *
-     * <p>Harta este sortată descrescător după numărul de ascultări și în ordine alfabetică
-     * în caz de egalitate. Numărul de artiști returnați este limitat la o valoare limit = 5.</p>
-     *
      * @param user Utilizatorul curent pentru care se calculează numărul de ascultări ale
-     *             artiștilor.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
-     *            unde cheia este numele artistului și valoarea este numărul total de ascultări
-     *            de către utilizator.
+     *                      artiștilor.
+     * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
+     *             artistului și valoarea este numărul total de ascultări de către utilizator.
      */
     public Map<String, Integer> getTopArtists(final User user) {
         // Map pentru a stoca numărul de ascultări pentru fiecare artist
         Map<String, Integer> topArtists = new HashMap<>();
 
         // Iterăm prin toate melodiile și obținem numărul de ascultări pentru utilizatorul curent
-        for (Song song : getAdminInstance().getSongs()) {
+        for (Song song : adminInstance.getSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -98,15 +92,7 @@ public class UserStats extends StatsTemplate {
         }
 
         // Sortează artiștii în funcție de numărul total de ascultări și extrage topul
-        return topArtists.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new));
+        return sortAndLimit(topArtists);
     }
 
     /**
@@ -116,20 +102,16 @@ public class UserStats extends StatsTemplate {
      *             fiecare melodie le-a primit de la utilizatorul dat, creând astfel o hartă
      *             cu melodiile și numărul total de ascultări.
      *
-     * <p>Harta este sortată descrescător după numărul de ascultări și în ordine alfabetică
-     * în caz de egalitate. Numărul de melodii returnate este limitat la o valoare limit = 5.</p>
-     *
      * @param user Utilizatorul pentru care se calculează numărul de ascultări ale melodiilor.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
-     *            unde cheia este numele melodiei și valoarea este numărul total de ascultări
-     *            de către utilizator.
+     * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
+     *           melodiei și valoarea este numărul total de ascultări de către utilizator.
      */
     public Map<String, Integer> getTopSongs(final User user) {
         // Map pentru a stoca numărul de ascultări pentru fiecare melodie
         Map<String, Integer> topSongs = new HashMap<>();
 
         // Iterăm prin toate melodiile și obținem numărul de ascultări pentru utilizatorul curent
-        for (Song song : getAdminInstance().getSongs()) {
+        for (Song song : adminInstance.getSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -144,15 +126,7 @@ public class UserStats extends StatsTemplate {
         }
 
         // Sortează melodiile în funcție de numărul total de ascultări și extrage topul
-        return topSongs.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new));
+        return sortAndLimit(topSongs);
     }
 
     /**
@@ -162,20 +136,16 @@ public class UserStats extends StatsTemplate {
      *             fiecare album pe care fiecare melodie le-a primit de la utilizatorul dat,
      *             creând astfel o hartă cu albumele și numărul total de ascultări.
      *
-     * <p>Harta este sortată descrescător după numărul de ascultări și în ordine alfabetică
-     * în caz de egalitate. Numărul de albume returnate este limitat la o valoare limit = 5.</p>
-     *
      * @param user Utilizatorul pentru care se calculează numărul de ascultări ale albumelor.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
-     *         unde cheia este numele albumului și valoarea este numărul total de ascultări
-     *         de către utilizator.
+     * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
+     *           albumului și valoarea este numărul total de ascultări de către utilizator.
      */
     public Map<String, Integer> getTopAlbums(final User user) {
         // Map pentru a stoca numărul de ascultări pentru fiecare album
         Map<String, Integer> topAlbums = new HashMap<>();
 
         // Iterează prin toate melodiile
-        for (Song song : getAdminInstance().getSongs()) {
+        for (Song song : adminInstance.getSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -193,15 +163,7 @@ public class UserStats extends StatsTemplate {
         }
 
         // Sortează albumele în funcție de numărul total de ascultări și extrage topul
-        return topAlbums.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new));
+        return sortAndLimit(topAlbums);
     }
 
     /**
@@ -211,20 +173,16 @@ public class UserStats extends StatsTemplate {
      *            fiecare gen muzical pe care fiecare melodie le-a primit de la utilizatorul dat,
      *            creând astfel o hartă cu genurile și numărul total de ascultări.
      *
-     * <p>Harta este sortată descrescător după numărul de ascultări și în ordine alfabetică
-     * în caz de egalitate. Numărul de genuri returnate este limitat la o valoare limit = 5.</p>
-     *
      * @param user User-ul pentru care se calculează numărul de ascultări ale genurilor muzicale.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
-     *         unde cheia este numele genului muzical și valoarea este numărul total de ascultări
-     *         de către utilizator.
+     * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
+     *           genului muzical și valoarea este numărul total de ascultări de către utilizator.
      */
     public Map<String, Integer> getTopGenres(final User user) {
         // Map pentru a stoca numărul de ascultări pentru fiecare gen muzical
         Map<String, Integer> topGenres = new HashMap<>();
 
         // Iterează prin toate melodiile
-        for (Song song : getAdminInstance().getSongs()) {
+        for (Song song : adminInstance.getSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -242,15 +200,7 @@ public class UserStats extends StatsTemplate {
         }
 
         // Sortează genurile muzicale în funcție de numărul total de ascultări și extrage topul
-        return topGenres.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new));
+        return sortAndLimit(topGenres);
     }
 
     /**
@@ -260,20 +210,16 @@ public class UserStats extends StatsTemplate {
      *             de ascultări pe care fiecare episod le-a primit de la utilizatorul dat, creând
      *             astfel o hartă cu episoadele și numărul total de ascultări.
      *
-     * <p>Harta este sortată descrescător după numărul de ascultări și în ordine alfabetică
-     * în caz de egalitate. Numărul de episoade returnate este limitat la o valoare limit = 5.</p>
-     *
      * @param user Utilizatorul pentru care se calculează numărul de ascultări ale episoadelor.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
-     *         unde cheia este numele episodului și valoarea este numărul total de ascultări
-     *         de către utilizator.
+     * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este
+     *           numele episodului și valoarea este numărul total de ascultări de către utilizator.
      */
     public Map<String, Integer> getTopEpisodes(final User user) {
         // Map pentru a stoca numărul de ascultări pentru fiecare episod
         Map<String, Integer> topEpisodes = new HashMap<>();
 
         // Iterăm prin toate podcasturile si episoadele lor
-        for (Podcast podcast : getAdminInstance().getPodcasts()) {
+        for (Podcast podcast : adminInstance.getPodcasts()) {
             for (Episode episode : podcast.getEpisodes()) {
                 // Obține mapa cu numărul de ascultări pentru fiecare utilizator
                 Map<String, Integer> listens = episode.getUserListenCounts();
@@ -290,14 +236,6 @@ public class UserStats extends StatsTemplate {
         }
 
         // Sortează episoadele în funcție de numărul total de ascultări și extrage topul
-        return topEpisodes.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new));
+        return sortAndLimit(topEpisodes);
     }
 }

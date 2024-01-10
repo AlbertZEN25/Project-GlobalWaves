@@ -1,4 +1,4 @@
-package app.Stats;
+package app.statistics;
 
 import app.audio.Collections.Podcast;
 import app.audio.Files.Episode;
@@ -9,13 +9,10 @@ import fileio.input.CommandInput;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
 import java.util.Objects;
-import java.util.Comparator;
-import java.util.stream.Collectors;
 
 /**
  * Clasa HostStats este responsabilă pentru calcularea și adăugarea statisticilor specifice
@@ -74,18 +71,19 @@ public class HostStats extends StatsTemplate {
     /**
      * Calculează și returnează o hartă a episoadelor hostului și numărului lor de ascultări.
      * Această metodă parcurge toate podcasturile unui host și sumează numărul de ascultări
-     * pentru fiecare episod, creând astfel o hartă cu episoadele și numărul total de ascultări.
+     *         pentru fiecare episod, creând astfel o hartă cu episoadele și numărul total
+     *         de ascultări.
      *
      * @param host Host-ul pentru care se calculează topul episoadelor.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
-     *         unde cheia este numele episodului și valoarea este numărul total de ascultări.
+     * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
+     *             episodului și valoarea este numărul total de ascultări.
      */
     public Map<String, Integer> getTopEpisodes(final Host host) {
         // Map pentru a stoca numărul de ascultări pentru fiecare episod
         Map<String, Integer> topEpisodes = new HashMap<>();
 
         // Iterează prin toate podcasturile
-        for (Podcast podcast : getAdminInstance().getPodcasts()) {
+        for (Podcast podcast : adminInstance.getPodcasts()) {
             // Verificăm dacă Host-ul este owner pentru podcast-ul curent
             if (Objects.equals(podcast.getOwner(), host.getUsername())) {
 
@@ -104,16 +102,7 @@ public class HostStats extends StatsTemplate {
 
         // Sortează harta în funcție de numărul de ascultări, descrescător
         // În caz de egalitate, sortează după numele melodiei
-        return topEpisodes.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+        return sortAndLimit(topEpisodes);
     }
 
     /**
@@ -134,7 +123,7 @@ public class HostStats extends StatsTemplate {
         Set<String> uniqueListeners = new HashSet<>();
 
         // Parcurgem toate podcasturile si episoadele
-        for (Podcast podcast : getAdminInstance().getPodcasts()) {
+        for (Podcast podcast : adminInstance.getPodcasts()) {
             // Verificăm dacă Host-ul este owner pentru podcast-ul curent
             if (Objects.equals(podcast.getOwner(), host.getUsername())) {
                 for (Episode episode : podcast.getEpisodes()) {

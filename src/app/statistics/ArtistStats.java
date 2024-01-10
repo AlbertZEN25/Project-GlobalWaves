@@ -1,4 +1,4 @@
-package app.Stats;
+package app.statistics;
 
 import app.audio.Collections.Album;
 import app.audio.Files.Song;
@@ -9,9 +9,7 @@ import fileio.input.CommandInput;
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
 import java.util.List;
-import java.util.Comparator;
 import java.util.HashMap;
-import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
@@ -78,7 +76,7 @@ public class ArtistStats extends StatsTemplate {
      *            pentru artistul curent.
      *
      * @param artist Artist-ul pentru care se calculeaza top-ul albumelor acestuia.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
+     * @return O hartă sortată care conține perechi cheie-valoare,
      *         unde cheia este numele albumului și valoarea este numărul total de ascultări.
      */
     public Map<String, Integer> getTopAlbums(final Artist artist) {
@@ -98,16 +96,7 @@ public class ArtistStats extends StatsTemplate {
 
         // Sortează harta în funcție de numărul de ascultări, descrescător
         // În caz de egalitate, sortează după numele albumului
-        return topAlbums.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+        return sortAndLimit(topAlbums);
     }
 
     /**
@@ -116,7 +105,7 @@ public class ArtistStats extends StatsTemplate {
      * pentru fiecare melodie, creând astfel o hartă cu melodiile și numărul total de ascultări.
      *
      * @param artist Artist-ul pentru care se calculeaza top-ul melodiilor acestuia.
-     * @return O hartă sortată {@link LinkedHashMap} care conține perechi cheie-valoare,
+     * @return O hartă sortată care conține perechi cheie-valoare,
      *         unde cheia este numele melodiei și valoarea este numărul total de ascultări.
      */
     public Map<String, Integer> getTopSongs(final Artist artist) {
@@ -136,16 +125,7 @@ public class ArtistStats extends StatsTemplate {
 
         // Sortează harta în funcție de numărul de ascultări, descrescător
         // În caz de egalitate, sortează după numele melodiei
-        return topSongs.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .collect(Collectors.toMap(
-                        Map.Entry::getKey,
-                        Map.Entry::getValue,
-                        (e1, e2) -> e1,
-                        LinkedHashMap::new
-                ));
+        return sortAndLimit(topSongs);
     }
 
     /**
@@ -175,11 +155,7 @@ public class ArtistStats extends StatsTemplate {
         }
 
         // Sortăm fanii în funcție de numărul total de ascultări și extragem numele lor într-o listă
-        return topFanListens.entrySet().stream()
-                .sorted(Map.Entry.<String, Integer>comparingByValue(Comparator.reverseOrder())
-                        .thenComparing(Map.Entry::getKey))
-                .limit(getLimit()) // Limita la primele 5 rezultate
-                .map(Map.Entry::getKey)
+        return sortAndLimit(topFanListens).keySet().stream()
                 .collect(Collectors.toList());
     }
 

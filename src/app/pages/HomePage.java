@@ -3,6 +3,7 @@ package app.pages;
 import app.audio.Collections.Playlist;
 import app.audio.Files.Song;
 import app.user.User;
+import lombok.Getter;
 
 import java.util.Comparator;
 import java.util.List;
@@ -11,6 +12,8 @@ import java.util.List;
  * The type Home page.
  */
 public final class HomePage implements Page {
+    @Getter
+    private final String type = "home";
     private List<Song> likedSongs;
     private List<Playlist> followedPlaylists;
     private final int limit = 5;

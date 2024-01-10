@@ -137,6 +137,11 @@ public final class Main {
                 case "showAlbums" -> outputs.add(CommandRunner.showAlbums(command));
                 case "showPodcasts" -> outputs.add(CommandRunner.showPodcasts(command));
                 case "wrapped" -> outputs.add(CommandRunner.wrapped(command));
+                case "buyPremium" -> outputs.add(CommandRunner.buyPremium(command));
+                case "cancelPremium" -> outputs.add(CommandRunner.cancelPremium(command));
+                case "adBreak" -> outputs.add(CommandRunner.adBreak(command));
+                case "buyMerch" -> outputs.add(CommandRunner.buyMerch(command));
+                case "seeMerch" -> outputs.add(CommandRunner.seeMerch(command));
                 default -> System.out.println("Invalid command " + commandName);
             }
         }

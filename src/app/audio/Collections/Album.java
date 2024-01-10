@@ -16,6 +16,7 @@ public final class Album extends AudioCollection {
     private List<Song> songs;
     private Integer releaseYear;
     private Integer followers;
+    private int totalListens;
 
     /**
      * Instantiates a new Album.
@@ -32,6 +33,7 @@ public final class Album extends AudioCollection {
         this.songs = songs;
         this.description = description;
         this.releaseYear = releaseYear;
+        totalListens = 0;
     }
 
     @Override
@@ -61,8 +63,6 @@ public final class Album extends AudioCollection {
      *         ale fiecărei melodii din album.
      */
     public int getListenCount() {
-        // Inițializăm un contor pentru numărul total de ascultări al albumului curent
-        int totalListens = 0;
 
         // Parcurgem lista de melodii din album
         for (Song song : songs) {
