@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 @Data
 public class Filters {
+
     private String name;
     private String album;
     private ArrayList<String> tags;

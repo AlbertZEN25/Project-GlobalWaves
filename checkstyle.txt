@@ -1,4 +1,4 @@
 Starting audit...
-[ERROR] C:\Users\Albert\Desktop\Test\oop-project-2023-main\etapa3\.\src\app\statistics\StatsTemplate.java:26:17: Variable 'adminInstance' must be private and have accessor methods. [VisibilityModifier]
+[ERROR] C:\Users\Albert\Desktop\Test\oop-project-2023-main\etapa3\.\src\app\statistics\StatsTemplate.java:27:17: Variable 'adminInstance' must be private and have accessor methods. [VisibilityModifier]
 Audit done.
 Checkstyle ends with 1 errors.

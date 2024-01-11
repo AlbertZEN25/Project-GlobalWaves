@@ -3,19 +3,18 @@ package app.audio.Collections;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import lombok.Getter;
-import lombok.Setter;
 
 import java.util.List;
 
 /**
  * The type Album.
  */
-@Getter @Setter
+@Getter
 public final class Album extends AudioCollection {
-    private String description;
-    private List<Song> songs;
-    private Integer releaseYear;
-    private Integer followers;
+
+    private final String description;
+    private final List<Song> songs;
+    private final Integer releaseYear;
     private int totalListens;
 
     /**

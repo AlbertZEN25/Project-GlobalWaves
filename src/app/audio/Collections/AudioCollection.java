@@ -9,6 +9,7 @@ import lombok.Getter;
  */
 @Getter
 public abstract class AudioCollection extends LibraryEntry {
+
     private final String owner;
 
     /**

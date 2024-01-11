@@ -16,21 +16,16 @@ import lombok.Getter;
 /**
  * The type Artist.
  */
+@Getter
 public final class Artist extends ContentCreator {
 
-    @Getter
     private final ArrayList<Album> albums;
-    @Getter
     private final ArrayList<Merchandise> merch;
-    @Getter
     private final ArrayList<Event> events;
-    @Getter
     private double songRevenue; // Venituri din cântece
-    @Getter
     private double merchRevenue; // Venituri din merch
-    @Getter
     // O harta cu fiecare melodie a artistului si cat venit a generat fiecare
-    private Map<String, Double> artistSongsRevenue = new HashMap<>();
+    private final Map<String, Double> artistSongsRevenue = new HashMap<>();
 
     /**
      * Instantiates a new Artist.

@@ -6,6 +6,7 @@ import java.util.ArrayList;
 
 @Getter
 public class PodcastOutput {
+
     private final String name;
     private final ArrayList<String> episodes;
 

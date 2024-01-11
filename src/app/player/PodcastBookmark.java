@@ -4,6 +4,7 @@ import lombok.Getter;
 
 @Getter
 public final class PodcastBookmark {
+
     private final String name;
     private final int id;
     private final int timestamp;

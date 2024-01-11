@@ -8,6 +8,7 @@ import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
 import app.monetization.RevenueService;
+import app.notifications.Notification;
 import app.player.Player;
 import app.user.User;
 import app.user.Artist;
@@ -55,8 +56,8 @@ public final class Admin {
     private Set<Artist> artistsListen = new HashSet<>();
     @Getter
     private List<Host> hosts = new ArrayList<>();
-    private List<Song> songs = new ArrayList<>();
-    private List<Podcast> podcasts = new ArrayList<>();
+    private final List<Song> songs = new ArrayList<>();
+    private final List<Podcast> podcasts = new ArrayList<>();
     private int timestamp = 0;
     private final int limit = 5;
     private final int dateStringLength = 10;
@@ -408,6 +409,11 @@ public final class Admin {
                                                 username,
                                                 newSongs,
                                                 commandInput.getReleaseYear()));
+
+        Notification notification = new Notification("New Album", "New Album from "
+                                            + currentArtist.getUsername() + ".");
+        currentArtist.notifySubscribers(notification);
+
         return "%s has added new album successfully.".formatted(username);
     }
 
@@ -567,6 +573,11 @@ public final class Admin {
         currentArtist.getEvents().add(new Event(eventName,
                                                 commandInput.getDescription(),
                                                 commandInput.getDate()));
+
+        Notification notification = new Notification("New Event", "New Event from "
+                                               + currentArtist.getUsername() + ".");
+        currentArtist.notifySubscribers(notification);
+
         return "%s has added new event successfully.".formatted(username);
     }
 
@@ -651,6 +662,11 @@ public final class Admin {
         currentArtist.getMerch().add(new Merchandise(commandInput.getName(),
                                                      commandInput.getDescription(),
                                                      commandInput.getPrice()));
+
+        Notification notification = new Notification("New Merchandise", "New Merchandise from "
+                                               + currentArtist.getUsername() + ".");
+        currentArtist.notifySubscribers(notification);
+
         return "%s has added new merchandise successfully.".formatted(username);
     }
 
@@ -970,22 +986,15 @@ public final class Admin {
     public ObjectNode wrapped(final CommandInput commandInput) {
         // Obține utilizatorul curent în funcție de numele de utilizator din input
         UserAbstract currentUser = getAbstractUser(commandInput.getUsername());
-        StatsTemplate statsTemplate;
 
         // Selectează strategia de calcul a statisticilor în funcție de tipul utilizatorului
-        switch (currentUser.userType()) {
-            case "user":
-                statsTemplate = new UserStats();
-                break;
-            case "artist":
-                statsTemplate = new ArtistStats();
-                break;
-            case "host":
-                statsTemplate = new HostStats();
-                break;
-            default:
-                throw new IllegalStateException("Unexpected user type: " + currentUser.userType());
-        }
+        StatsTemplate statsTemplate = switch (currentUser.userType()) {
+            case "user" -> new UserStats();
+            case "artist" -> new ArtistStats();
+            case "host" -> new HostStats();
+            default -> throw new IllegalStateException("Unexpected user type: "
+                            + currentUser.userType());
+        };
 
         // Calculează și returnează statisticile
         return statsTemplate.calculateStats(currentUser, commandInput);

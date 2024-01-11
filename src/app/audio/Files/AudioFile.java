@@ -10,13 +10,13 @@ import java.util.Set;
 
 @Getter
 public abstract class AudioFile extends LibraryEntry {
-    private final Integer duration;
 
-    @Getter
-    private Integer listenCount; // Nr. de ascultari al fișier-ului curent (in total)
-    @Getter // Hartă cu numărul de ascultări ale fișier-ului pentru fiecare user
+    private final Integer duration;
+    // Nr. de ascultari al fișier-ului curent (in total)
+    private Integer listenCount;
+    // Hartă cu numărul de ascultări ale fișier-ului pentru fiecare user
     private final Map<String, Integer> userListenCounts = new HashMap<>();
-    @Getter // Set cu utilizatorii unici care au ascultat fișierul audio
+    // Set cu utilizatorii unici care au ascultat fișierul audio
     private final Set<String> uniqueListeners = new HashSet<>();
 
     public AudioFile(final String name, final Integer duration) {

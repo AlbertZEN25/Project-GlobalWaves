@@ -12,6 +12,7 @@ import java.util.ArrayList;
  */
 @Getter
 public final class Playlist extends AudioCollection {
+
     private final ArrayList<Song> songs;
     private Enums.Visibility visibility;
     private Integer followers;

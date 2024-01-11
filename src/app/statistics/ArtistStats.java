@@ -8,12 +8,13 @@ import fileio.input.CommandInput;
 
 import com.fasterxml.jackson.databind.node.ObjectNode;
 
-import java.util.List;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.stream.Collectors;
+
 
 /**
  * Clasa ArtistStats este responsabilă pentru calcularea și adăugarea statisticilor specifice
@@ -155,8 +156,7 @@ public class ArtistStats extends StatsTemplate {
         }
 
         // Sortăm fanii în funcție de numărul total de ascultări și extragem numele lor într-o listă
-        return sortAndLimit(topFanListens).keySet().stream()
-                .collect(Collectors.toList());
+        return new ArrayList<>(sortAndLimit(topFanListens).keySet());
     }
 
     /**

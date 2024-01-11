@@ -1,9 +1,13 @@
 package app.pages.pageContent;
 
+import lombok.Getter;
+
 /**
  * The type Announcement.
  */
+@Getter
 public class Announcement {
+
     private String name;
     private String description;
 
@@ -19,30 +23,12 @@ public class Announcement {
     }
 
     /**
-     * Gets name.
-     *
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
      * Sets name.
      *
      * @param name the name
      */
     public void setName(final String name) {
         this.name = name;
-    }
-
-    /**
-     * Gets description.
-     *
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
     }
 
     /**

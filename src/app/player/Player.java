@@ -25,9 +25,7 @@ public final class Player {
     @Getter
     private String type;
     private final int skipTime = 90;
-
-    private ArrayList<PodcastBookmark> bookmarks = new ArrayList<>();
-
+    private final ArrayList<PodcastBookmark> bookmarks = new ArrayList<>();
 
     /**
      * Instantiates a new Player.
@@ -226,8 +224,8 @@ public final class Player {
             audioFile.incrementUserListenCount(username);
 
             // Verifică dacă fișierul audio curent este o melodie
-            if (getType().equals("song") || getType().equals("playlist")
-                      || getType().equals("album")) {
+            if (this.getType().equals("song") || this.getType().equals("playlist")
+                      || this.getType().equals("album")) {
                 // Converteste fișierul audio la obiectul de tip 'Song'
                 Song currentSong = (Song) source.getAudioFile();
 

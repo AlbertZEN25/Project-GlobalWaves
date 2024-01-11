@@ -174,28 +174,22 @@ public class PlayerSource {
      * @param shuffle the shuffle
      */
     public void setPrevAudioFile(final boolean shuffle) {
-        if (type == Enums.PlayerSourceType.LIBRARY) {
-            remainedDuration = audioFile.getDuration();
-        } else {
-            if (remainedDuration != audioFile.getDuration()) {
-                remainedDuration = audioFile.getDuration();
-            } else {
+        if (type != Enums.PlayerSourceType.LIBRARY) {
+            if (remainedDuration == audioFile.getDuration()) {
                 if (shuffle) {
                     if (indexShuffled > 0) {
                         indexShuffled--;
                     }
                     index = indices.get(indexShuffled);
-                    updateAudioFile();
-                    remainedDuration = audioFile.getDuration();
                 } else {
                     if (index > 0) {
                         index--;
                     }
-                    updateAudioFile();
-                    remainedDuration = audioFile.getDuration();
                 }
+                updateAudioFile();
             }
         }
+        remainedDuration = audioFile.getDuration();
     }
 
     /**

@@ -9,6 +9,7 @@ import java.util.ArrayList;
  */
 @Getter
 public abstract class LibraryEntry {
+
     private final String name;
 
     /**

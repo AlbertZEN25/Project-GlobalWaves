@@ -1,9 +1,13 @@
 package app.pages.pageContent;
 
+import lombok.Getter;
+
 /**
  * The type Merchandise.
  */
+@Getter
 public class Merchandise {
+
     private String name;
     private String description;
     private int price;
@@ -22,15 +26,6 @@ public class Merchandise {
     }
 
     /**
-     * Gets name.
-     *
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
      * Sets name.
      *
      * @param name the name
@@ -40,30 +35,12 @@ public class Merchandise {
     }
 
     /**
-     * Gets description.
-     *
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
      * Sets description.
      *
      * @param description the description
      */
     public void setDescription(final String description) {
         this.description = description;
-    }
-
-    /**
-     * Gets price.
-     *
-     * @return the price
-     */
-    public int getPrice() {
-        return price;
     }
 
     /**

@@ -13,8 +13,10 @@ import java.util.List;
 public final class HostPage implements Page {
     @Getter
     private final String type = "host";
-    private List<Podcast> podcasts;
-    private List<Announcement> announcements;
+    @Getter
+    private Host host;
+    private final List<Podcast> podcasts;
+    private final List<Announcement> announcements;
 
     /**
      * Instantiates a new Host page.
@@ -22,6 +24,7 @@ public final class HostPage implements Page {
      * @param host the host
      */
     public HostPage(final Host host) {
+        this.host = host;
         podcasts = host.getPodcasts();
         announcements = host.getAnnouncements();
     }

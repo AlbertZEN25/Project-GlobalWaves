@@ -951,6 +951,65 @@ public final class CommandRunner {
     }
 
     /**
+     * Procesează comanda "subscribe" primită de la un utilizator.
+     * Această metodă permite unui utilizator să se aboneze sau să se dezaboneze
+     *         de la un ContentCreator
+     *
+     * @param commandInput the command input
+     * @return the objectNode care conține informații despre executarea comenzii,
+     *               inclusiv un mesaj cu rezultatul operației.
+     */
+    public static ObjectNode subscribe(final CommandInput commandInput) {
+        // Obținerea user-ului pe baza numelui de utilizator din comandă
+        User user = admin.getUser(commandInput.getUsername());
+        String message;
+
+        // Verifică dacă utilizatorul există în sistem
+        if (user == null) {
+            message = "The username " + commandInput.getUsername() + " doesn't exist.";
+        } else {
+            // Se procesează comanda de abonare/dezabonare
+            message = user.subscribe();
+        }
+
+        // Creează un obiect ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda de a obține notificările unui utilizator.
+     *
+     * @param commandInput the command input
+     * @return ObjectNode care include detaliile execuției comenzii și notificările utilizatorului.
+     */
+    public static ObjectNode getNotifications(final CommandInput commandInput) {
+        // Obține utilizatorul bazat pe numele de utilizator din comandă
+        User user = admin.getUser(commandInput.getUsername());
+
+        // Creează un nou ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+
+        // Verifică dacă utilizatorul există în sistem
+        if (user == null) {
+            objectNode.put("message", "The username " + commandInput.getUsername()
+                      + " doesn't exist.");
+        } else {
+            objectNode.setAll(user.getNotifications());
+        }
+
+        return objectNode;
+    }
+
+    /**
      * Procesează finalizarea programului și calculează veniturile artiștilor, generând
      *            un raport de monetizare.
      *

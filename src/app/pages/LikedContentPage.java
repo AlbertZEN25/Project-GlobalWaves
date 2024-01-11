@@ -16,11 +16,11 @@ public final class LikedContentPage implements Page {
     /**
      * The Liked songs.
      */
-    private List<Song> likedSongs;
+    private final List<Song> likedSongs;
     /**
      * The Followed playlists.
      */
-    private List<Playlist> followedPlaylists;
+    private final List<Playlist> followedPlaylists;
 
     /**
      * Instantiates a new Liked content page.

@@ -16,9 +16,9 @@ public final class ArtistPage implements Page {
     private final String type = "artist";
     @Getter
     private Artist artist;
-    private List<Album> albums;
-    private List<Merchandise> merch;
-    private List<Event> events;
+    private final List<Album> albums;
+    private final List<Merchandise> merch;
+    private final List<Event> events;
 
     /**
      * Instantiates a new Artist page.

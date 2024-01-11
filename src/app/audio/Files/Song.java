@@ -10,6 +10,7 @@ import java.util.ArrayList;
  */
 @Getter
 public final class Song extends AudioFile {
+
     private final String album;
     private final ArrayList<String> tags;
     private final String lyrics;
@@ -105,5 +106,4 @@ public final class Song extends AudioFile {
     public void dislike() {
         likes--;
     }
-
 }

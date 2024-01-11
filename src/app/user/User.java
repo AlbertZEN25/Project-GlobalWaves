@@ -7,10 +7,13 @@ import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import app.audio.LibraryEntry;
 import app.monetization.RevenueService;
+import app.notifications.Notification;
+import app.pages.Page;
 import app.pages.ArtistPage;
+import app.pages.HostPage;
 import app.pages.HomePage;
 import app.pages.LikedContentPage;
-import app.pages.Page;
+
 import java.util.stream.Collectors;
 
 import app.pages.pageContent.Merchandise;
@@ -20,6 +23,9 @@ import app.searchBar.Filters;
 import app.searchBar.SearchBar;
 import app.utils.Enums;
 import app.Admin;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
 import lombok.Getter;
 import lombok.Setter;
 
@@ -29,7 +35,8 @@ import java.util.List;
 /**
  * The type User.
  */
-public final class User extends UserAbstract {
+
+public final class User extends UserAbstract implements Subscriber {
     @Getter
     private ArrayList<Playlist> playlists;
     @Getter
@@ -56,6 +63,8 @@ public final class User extends UserAbstract {
     private List<Song> songsListenedFree = new ArrayList<>();
     @Getter // Lista de merch-uri cumpărate de utilizator.
     private final ArrayList<Merchandise> purchasedMerch = new ArrayList<>();
+    private final List<Notification> notifications = new ArrayList<>();
+    private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 
 
     /**
@@ -252,7 +261,7 @@ public final class User extends UserAbstract {
         }
 
         Enums.RepeatMode repeatMode = player.repeat();
-        String repeatStatus = "";
+        String repeatStatus;
 
         switch (repeatMode) {
             case NO_REPEAT -> {
@@ -753,5 +762,64 @@ public final class User extends UserAbstract {
         return this.purchasedMerch.stream()
                 .map(Merchandise::getName)
                 .collect(Collectors.toList());
+    }
+
+    /**
+     * Implementează logica de actualizare a unui observator în momentul primirii unei notificări.
+     *
+     * @param notification Notificarea primită de la subiect (ContentCreator).
+     */
+    @Override
+    public void update(final Notification notification) {
+        // Adaugă notificarea primită la lista de notificări a utilizatorului
+        notifications.add(notification);
+    }
+
+    /**
+     * Gestionează abonarea sau dezabonarea unui utilizator la pagina unui ContentCreator
+     *
+     * @return Un mesaj care indică rezultatul operației de abonare/dezabonare.
+     */
+    public String subscribe() {
+        // Verifică tipul paginii curente și obține referința către ContentCreator
+        if (currentPage.getType().equals("artist") || currentPage.getType().equals("host")) {
+            ContentCreator creator = currentPage.getType().equals("artist")
+                    ? ((ArtistPage) currentPage).getArtist() : ((HostPage) currentPage).getHost();
+
+            // Logica pentru abonare/dezabonare
+            boolean isSubscribed = creator.toggleSubscription(this);
+
+            // Comută starea de abonare și generează mesajul corespunzător
+            String action = isSubscribed ? "subscribed to" : "unsubscribed from";
+            return getUsername() + " " + action + " " + creator.getUsername() + " successfully.";
+        } else {
+            return "To subscribe you need to be on the page of an artist or host.";
+        }
+    }
+
+    /**
+     * Obține notificările utilizatorului și le returnează sub forma unui ObjectNode.
+     * După accesarea notificărilor, acestea sunt șterse din lista internă a utilizatorului.
+     *
+     * @return ObjectNode care conține un array cu notificările utilizatorului.
+     */
+    public ObjectNode getNotifications() {
+        // Creează un nou ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        // Creează un ArrayNode pentru a stoca notificările
+        ArrayNode notificationsArray = objectNode.putArray("notifications");
+
+        // Adaugă fiecare notificare în ArrayNode sub forma unui ObjectNode
+        for (Notification notification : notifications) {
+            ObjectNode notificationNode = OBJECT_MAPPER.createObjectNode();
+            notificationNode.put("name", notification.getName());
+            notificationNode.put("description", notification.getDescription());
+            notificationsArray.add(notificationNode);
+        }
+
+        // Șterge toate notificările utilizatorului
+        notifications.clear();
+
+        return objectNode;
     }
 }

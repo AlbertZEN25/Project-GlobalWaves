@@ -10,11 +10,10 @@ import java.util.ArrayList;
 /**
  * The type Host.
  */
+@Getter
 public final class Host extends ContentCreator {
 
-    @Getter
     private ArrayList<Podcast> podcasts;
-    @Getter
     private ArrayList<Announcement> announcements;
 
     /**

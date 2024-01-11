@@ -1,9 +1,13 @@
 package app.pages.pageContent;
 
+import lombok.Getter;
+
 /**
  * The type Event.
  */
+@Getter
 public class Event {
+
     private String name;
     private String description;
     private String date;
@@ -22,15 +26,6 @@ public class Event {
     }
 
     /**
-     * Gets name.
-     *
-     * @return the name
-     */
-    public String getName() {
-        return name;
-    }
-
-    /**
      * Sets name.
      *
      * @param name the name
@@ -40,30 +35,12 @@ public class Event {
     }
 
     /**
-     * Gets description.
-     *
-     * @return the description
-     */
-    public String getDescription() {
-        return description;
-    }
-
-    /**
      * Sets description.
      *
      * @param description the description
      */
     public void setDescription(final String description) {
         this.description = description;
-    }
-
-    /**
-     * Gets date.
-     *
-     * @return the date
-     */
-    public String getDate() {
-        return date;
     }
 
     /**

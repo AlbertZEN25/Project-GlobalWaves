@@ -9,10 +9,11 @@ import lombok.Setter;
 import java.util.List;
 
 public final class RevenueService {
-    private static RevenueService instance = null;
+
     private final double totalValue = 1000000.0;
     @Setter
     private double adPrice;
+    private static RevenueService instance = null;
 
     private RevenueService() {
     }

@@ -8,6 +8,7 @@ import java.util.List;
 
 @Getter
 public final class Podcast extends AudioCollection {
+
     private final List<Episode> episodes;
 
     public Podcast(final String name, final String owner, final List<Episode> episodes) {

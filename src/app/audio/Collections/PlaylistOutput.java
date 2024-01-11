@@ -7,6 +7,7 @@ import java.util.ArrayList;
 
 @Getter
 public class PlaylistOutput {
+
     private final String name;
     private final ArrayList<String> songs;
     private final String visibility;

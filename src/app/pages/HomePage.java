@@ -14,8 +14,8 @@ import java.util.List;
 public final class HomePage implements Page {
     @Getter
     private final String type = "home";
-    private List<Song> likedSongs;
-    private List<Playlist> followedPlaylists;
+    private final List<Song> likedSongs;
+    private final List<Playlist> followedPlaylists;
     private final int limit = 5;
 
     /**

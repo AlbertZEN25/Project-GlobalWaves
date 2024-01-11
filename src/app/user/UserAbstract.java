@@ -1,9 +1,13 @@
 package app.user;
 
+import lombok.Getter;
+
 /**
  * The type User abstract.
  */
+@Getter
 public abstract class UserAbstract {
+
     private String username;
     private int age;
     private String city;
@@ -22,15 +26,6 @@ public abstract class UserAbstract {
     }
 
     /**
-     * Gets username.
-     *
-     * @return the username
-     */
-    public String getUsername() {
-        return username;
-    }
-
-    /**
      * Sets username.
      *
      * @param username the username
@@ -40,30 +35,12 @@ public abstract class UserAbstract {
     }
 
     /**
-     * Gets age.
-     *
-     * @return the age
-     */
-    public int getAge() {
-        return age;
-    }
-
-    /**
      * Sets age.
      *
      * @param age the age
      */
     public void setAge(final int age) {
         this.age = age;
-    }
-
-    /**
-     * Gets city.
-     *
-     * @return the city
-     */
-    public String getCity() {
-        return city;
     }
 
     /**

@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
  *        pentru diferite tipuri de utilizatori.
  */
 public abstract class StatsTemplate {
+
     private final int limit = 5; // Limita la primele rezultate
     protected static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
 

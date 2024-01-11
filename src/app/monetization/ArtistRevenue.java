@@ -1,7 +1,6 @@
 package app.monetization;
 
 import lombok.Getter;
-import lombok.Setter;
 
 /**
  * Clasa care reprezintă veniturile unui artist, inclusiv veniturile din melodii, merchandising,
@@ -9,12 +8,13 @@ import lombok.Setter;
  * Această clasă este utilizată pentru a stoca și gestiona veniturile generate de un artist
  *          în cadrul platformei.
  */
-@Getter @Setter
+@Getter
 public class ArtistRevenue {
-    private double songRevenue; // Veniturile artistului din melodii
-    private double merchRevenue; // Veniturile artistului din vânzările de merch
-    private int ranking; // Rangul artistului pe platformă bazat pe venituri
-    private String mostProfitableSong; // Melodia cea mai profitabilă a artistului
+
+    private final double songRevenue; // Veniturile artistului din melodii
+    private final double merchRevenue; // Veniturile artistului din vânzările de merch
+    private final int ranking; // Rangul artistului pe platformă bazat pe venituri
+    private final String mostProfitableSong; // Melodia cea mai profitabilă a artistului
 
     public ArtistRevenue(final double songRevenue, final double merchRevenue, final int ranking,
                          final String mostProfitableSong) {
