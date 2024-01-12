@@ -224,9 +224,28 @@ public final class Admin {
      */
     public Host getHost(final String username) {
         return hosts.stream()
-                .filter(artist -> artist.getUsername().equals(username))
+                .filter(host -> host.getUsername().equals(username))
                 .findFirst()
                 .orElse(null);
+    }
+
+    /**
+     * Gets host for episode
+     *
+     * @param currentEpisode the episode
+     * @return the host
+     */
+    public Host getHostEpisode(final Episode currentEpisode) {
+        Host host = null;
+        for (Podcast podcast : podcasts) {
+            for (Episode episode : podcast.getEpisodes()) {
+                if (currentEpisode.equals(episode)) {
+                    host = getHost(podcast.getOwner());
+                }
+            }
+        }
+
+        return host;
     }
 
     /**
@@ -752,12 +771,24 @@ public final class Admin {
         }
 
         switch (nextPage) {
-            case "Home" -> user.setCurrentPage(user.getHomePage());
-            case "LikedContent" -> user.setCurrentPage(user.getLikedContentPage());
+            case "Home" -> user.changePage(user.getHomePage());
+            case "LikedContent" -> user.changePage(user.getLikedContentPage());
+            case "Artist" -> {
+                Song song = (Song) user.getPlayer().getCurrentAudioFile();
+                Artist artist = getArtist(song.getArtist());
+                user.changePage(artist.getPage());
+            }
+            case "Host" -> {
+                Episode episode = (Episode) user.getPlayer().getCurrentAudioFile();
+                Host host = getHostEpisode(episode);
+                user.changePage(host.getPage());
+            }
             default -> {
                 return "%s is trying to access a non-existent page.".formatted(username);
             }
         }
+
+        user.getPageMemento().resetForwardHistory();
 
         return "%s accessed %s successfully.".formatted(username, nextPage);
     }

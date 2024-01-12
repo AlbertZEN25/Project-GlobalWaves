@@ -9,10 +9,11 @@ import app.audio.LibraryEntry;
 import app.monetization.RevenueService;
 import app.notifications.Notification;
 import app.pages.Page;
-import app.pages.ArtistPage;
-import app.pages.HostPage;
 import app.pages.HomePage;
 import app.pages.LikedContentPage;
+import app.pages.ArtistPage;
+import app.pages.HostPage;
+import app.pages.PageMemento;
 
 import java.util.stream.Collectors;
 
@@ -65,6 +66,8 @@ public final class User extends UserAbstract implements Subscriber {
     private final ArrayList<Merchandise> purchasedMerch = new ArrayList<>();
     private final List<Notification> notifications = new ArrayList<>();
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
+    @Getter
+    private PageMemento pageMemento = new PageMemento();
 
 
     /**
@@ -88,6 +91,7 @@ public final class User extends UserAbstract implements Subscriber {
         homePage = new HomePage(this);
         currentPage = homePage;
         likedContentPage = new LikedContentPage(this);
+        pageMemento.addPage(homePage);
     }
 
     @Override
@@ -821,5 +825,51 @@ public final class User extends UserAbstract implements Subscriber {
         notifications.clear();
 
         return objectNode;
+    }
+
+    /**
+     * Schimbă pagina curentă a utilizatorului la o nouă pagină specificată.
+     * @param newPage Noua pagină la care utilizatorul navighează.
+     */
+    public void changePage(final Page newPage) {
+        // Adaugă noua pagină în istoricul de navigare al utilizatorului
+        pageMemento.addPage(newPage);
+
+        // Actualizează pagina curentă a utilizatorului la noua pagină
+        this.currentPage = newPage;
+    }
+
+    /**
+     * Navighează utilizatorul la pagina anterioară din istoricul său de navigare.
+     *
+     * @return boolean True dacă navigarea la pagina anterioară este posibilă și a fost realizată,
+     *                 False dacă nu există o pagină anterioară în istoric.
+     */
+    public boolean goToPreviousPage() {
+        // Verifică dacă este posibil să se navigheze la pagina anterioară
+        if (pageMemento.canGoToPreviousPage()) {
+            // Setează pagina curentă la pagina anterioară din istoric
+            currentPage = pageMemento.getPreviousPage();
+            return true;
+        }
+        // Returnează false dacă nu există o pagină anterioară în istoric
+        return false;
+    }
+
+    /**
+     * Navighează utilizatorul la pagina următoare din istoricul său de navigare.
+     *
+     * @return boolean True dacă navigarea la pagina următoare este posibilă și a fost realizată,
+     *                 False dacă nu există o pagină următoare în istoric.
+     */
+    public boolean goToNextPage() {
+        // Verifică dacă este posibil să se navigheze la pagina următoare
+        if (pageMemento.canGoToNextPage()) {
+            // Setează pagina curentă la pagina următoare din istoric
+            currentPage = pageMemento.getNextPage();
+            return true;
+        }
+        // Returnează false dacă nu există o pagină următoare în istoric
+        return false;
     }
 }

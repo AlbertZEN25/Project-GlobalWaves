@@ -1010,6 +1010,64 @@ public final class CommandRunner {
     }
 
     /**
+     * Procesează comanda de navigare la următoarea pagină din istoricul de navigare
+     *            al utilizatorului.
+     *
+     * @param commandInput the command input
+     * @return ObjectNode care conține detalii despre execuția comenzii și un mesaj care descrie
+     *                    rezultatul operației.
+     */
+    public static ObjectNode nextPage(final CommandInput commandInput) {
+        // Obține utilizatorul pe baza numelui de utilizator
+        User user = admin.getUser(commandInput.getUsername());
+
+        // Creează un nou ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", "nextPage");
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+
+        // Verifică dacă există o pagină următoare și navighează dacă este posibil
+        if (user.goToNextPage()) {
+            objectNode.put("message", "The user " + commandInput.getUsername()
+                    + " has navigated successfully to the next page.");
+        } else {
+            objectNode.put("message", "There are no pages left to go forward.");
+        }
+
+        return objectNode;
+    }
+
+    /**
+     * Procesează comanda de navigare la pagina anterioară din istoricul de navigare
+     *            al utilizatorului.
+     *
+     * @param commandInput the command input
+     * @return ObjectNode care conține detalii despre execuția comenzii și un mesaj care descrie
+     *                    rezultatul operației.
+     */
+    public static ObjectNode previousPage(final CommandInput commandInput) {
+        // Obține utilizatorul pe baza numelui de utilizator
+        User user = admin.getUser(commandInput.getUsername());
+
+        // Crează un nou ObjectNode pentru a construi răspunsul
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", "previousPage");
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+
+        // Verifică dacă există o pagină anterioară și navighează dacă este posibil
+        if (user.goToPreviousPage()) {
+            objectNode.put("message", "The user " + commandInput.getUsername()
+                    + " has navigated successfully to the previous page.");
+        } else {
+            objectNode.put("message", "There are no pages left to go back.");
+        }
+
+        return objectNode;
+    }
+
+    /**
      * Procesează finalizarea programului și calculează veniturile artiștilor, generând
      *            un raport de monetizare.
      *

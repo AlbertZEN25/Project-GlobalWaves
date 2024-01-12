@@ -12,7 +12,6 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-import java.util.Objects;
 
 /**
  * Clasa HostStats este responsabilă pentru calcularea și adăugarea statisticilor specifice
@@ -85,7 +84,7 @@ public class HostStats extends StatsTemplate {
         // Iterează prin toate podcasturile
         for (Podcast podcast : adminInstance.getPodcasts()) {
             // Verificăm dacă Host-ul este owner pentru podcast-ul curent
-            if (Objects.equals(podcast.getOwner(), host.getUsername())) {
+            if (podcast.getOwner().equals(host.getUsername())) {
 
                 for (Episode episode : podcast.getEpisodes()) {
                     // Obține numărul de ascultări pentru fiecare episod
@@ -125,7 +124,7 @@ public class HostStats extends StatsTemplate {
         // Parcurgem toate podcasturile si episoadele
         for (Podcast podcast : adminInstance.getPodcasts()) {
             // Verificăm dacă Host-ul este owner pentru podcast-ul curent
-            if (Objects.equals(podcast.getOwner(), host.getUsername())) {
+            if (podcast.getOwner().equals(host.getUsername())) {
                 for (Episode episode : podcast.getEpisodes()) {
                     // Obține setul de ascultători unici pentru fiecare episod
                     Set<String> listeners = episode.getUniqueListeners();

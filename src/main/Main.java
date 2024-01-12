@@ -144,6 +144,8 @@ public final class Main {
                 case "seeMerch" -> outputs.add(CommandRunner.seeMerch(command));
                 case "subscribe" -> outputs.add(CommandRunner.subscribe(command));
                 case "getNotifications" -> outputs.add(CommandRunner.getNotifications(command));
+                case "previousPage" -> outputs.add(CommandRunner.previousPage(command));
+                case "nextPage" -> outputs.add(CommandRunner.nextPage(command));
                 default -> System.out.println("Invalid command " + commandName);
             }
         }
