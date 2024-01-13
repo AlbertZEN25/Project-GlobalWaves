@@ -34,7 +34,7 @@ public final class Song extends AudioFile {
     public Song(final String name, final Integer duration, final String album,
                 final ArrayList<String> tags, final String lyrics, final String genre,
                 final Integer releaseYear, final String artist) {
-        super(name, duration);
+        super(name, duration, artist);
         this.album = album;
         this.tags = tags;
         this.lyrics = lyrics;

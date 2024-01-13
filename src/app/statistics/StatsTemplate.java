@@ -1,6 +1,7 @@
 package app.statistics;
 
 import app.Admin;
+import app.audio.Files.Song;
 import app.user.UserAbstract;
 import fileio.input.CommandInput;
 
@@ -8,9 +9,11 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.Comparator;
+import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 import java.util.LinkedHashMap;
+import java.util.stream.Stream;
 
 /**
  * Clasa abstractă StatsTemplate definește tamplate-ul pentru calcularea statisticilor pentru
@@ -56,8 +59,8 @@ public abstract class StatsTemplate {
     /**
      * Creează și returnează un ObjectNode ce conține statisticile furnizate sub formă de mapă.
      *
-     * @param stats Mapa ce conține perechi cheie-valoare, unde cheia este un String (de exemplu,
-     *         numele unei melodii) și valoarea este un Integer (de exemplu, numărul de ascultări).
+     * @param stats Mapa ce conține perechi cheie-valoare, unde cheia este un String și
+     *                      valoarea este un Integer
      * @return Un ObjectNode care conține toate statisticile date, fiecare pereche cheie-valoare
      *         fiind transformată într-un câmp al nodului JSON.
      */
@@ -84,25 +87,34 @@ public abstract class StatsTemplate {
 
     /**
      * Verifică dacă există date de afișat pentru utilizatorul dat.
-     * Această metodă trebuie implementată de subclase pentru a determina dacă un anumit tip
-     *         de utilizator are date de afișat.
      *
-     * @param currentUser Utilizatorul curent pentru care se verifică disponibilitatea datelor.
+     * @param currentUser Utilizatorul curent
      * @return true dacă există date de afișat, altfel false.
      */
     protected abstract boolean hasDataToDisplay(UserAbstract currentUser);
 
     /**
+     * Obține o listă consolidată care conține toate melodiile, atât cele active cât și cele șterse.
+     *
+     * @return O listă de Song care include toate melodiile active și cele șterse.
+     */
+    public List<Song> getAllSongs() {
+        // Obține lista de melodii active si șterse din instanța admin
+        List<Song> songs = adminInstance.getSongs();
+        List<Song> deletedSongs = adminInstance.getDeletedSongs();
+
+        return Stream.concat(songs.stream(), deletedSongs.stream())
+                .collect(Collectors.toList());
+    }
+
+    /**
      * Sortează și limitează o hartă furnizată pe baza valorilor sale, în ordine descrescătoare.
      * În cazul valorilor egale, se face o sortare suplimentară în ordine alfabetică a cheilor.
-     * Rezultatul este o hartă nouă, limitată la un număr specific de intrări, păstrând ordinea
-     *            stabilită de sortare.
      *
      * @param map Harta originală de tipul Map<String, Integer> care trebuie sortată și limitată.
      *
      * @return O hartă <String, Integer> care conține elementele sortate și limitate
-     *         din harta originală. Această hartă păstrează ordinea elementelor după sortare.
-     *         Dimensiunea hărții este limitată la un număr linit = 5 de elemente.
+     *         din harta originală.
      */
     protected Map<String, Integer> sortAndLimit(final Map<String, Integer> map) {
         return map.entrySet().stream()

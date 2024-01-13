@@ -4,6 +4,7 @@ import app.audio.Files.AudioFile;
 import app.audio.Files.Song;
 import app.utils.Enums;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.ArrayList;
 
@@ -12,8 +13,8 @@ import java.util.ArrayList;
  */
 @Getter
 public final class Playlist extends AudioCollection {
-
-    private final ArrayList<Song> songs;
+    @Setter
+    private ArrayList<Song> songs;
     private Enums.Visibility visibility;
     private Integer followers;
     private final int timestamp;

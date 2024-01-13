@@ -7,21 +7,21 @@ import app.audio.Collections.Podcast;
 import app.audio.Files.AudioFile;
 import app.audio.Files.Episode;
 import app.audio.Files.Song;
-import app.monetization.RevenueService;
 import app.notifications.Notification;
 import app.player.Player;
+import app.recommendations.RecommendationFactory;
+import app.recommendations.RecommendationStrategy;
+import app.statistics.StatsFactory;
+import app.statistics.StatsTemplate;
+
 import app.user.User;
+import app.user.UserAbstract;
 import app.user.Artist;
 import app.user.Host;
-import app.user.UserAbstract;
 import app.pages.pageContent.Event;
 import app.pages.pageContent.Merchandise;
 import app.pages.pageContent.Announcement;
 import app.monetization.ArtistRevenue;
-import app.statistics.StatsTemplate;
-import app.statistics.UserStats;
-import app.statistics.ArtistStats;
-import app.statistics.HostStats;
 import fileio.input.CommandInput;
 import fileio.input.EpisodeInput;
 import fileio.input.PodcastInput;
@@ -48,6 +48,7 @@ import com.fasterxml.jackson.databind.node.ObjectNode;
  * The type Admin.
  */
 public final class Admin {
+    @Getter
     private final List<User> users = new ArrayList<>();
     @Getter
     private List<Artist> artists = new ArrayList<>();
@@ -57,6 +58,8 @@ public final class Admin {
     @Getter
     private List<Host> hosts = new ArrayList<>();
     private final List<Song> songs = new ArrayList<>();
+    @Getter
+    private List<Song> deletedSongs = new ArrayList<>();
     private final List<Podcast> podcasts = new ArrayList<>();
     private int timestamp = 0;
     private final int limit = 5;
@@ -129,7 +132,7 @@ public final class Admin {
             for (EpisodeInput episodeInput : podcastInput.getEpisodes()) {
                 episodes.add(new Episode(episodeInput.getName(),
                                          episodeInput.getDuration(),
-                                         episodeInput.getDescription()));
+                                         episodeInput.getDescription(), podcastInput.getOwner()));
             }
             podcasts.add(new Podcast(podcastInput.getName(), podcastInput.getOwner(), episodes));
         }
@@ -142,6 +145,24 @@ public final class Admin {
      */
     public List<Song> getSongs() {
         return new ArrayList<>(songs);
+    }
+
+    /**
+     * Returnează o listă de melodii care corespund unui gen muzical specific.
+     *
+     * @param genre Genul muzical pentru care se caută melodiile.
+     * @return Lista de melodii care aparțin genului specificat.
+     */
+    public List<Song> getSongsGenre(final String genre) {
+        List<Song> songsOfGenre = new ArrayList<>();
+
+        for (Song song : songs) {
+            if (song.getGenre().equals(genre)) {
+                songsOfGenre.add(song);
+            }
+        }
+
+        return songsOfGenre;
     }
 
     /**
@@ -230,22 +251,30 @@ public final class Admin {
     }
 
     /**
-     * Gets host for episode
+     * Gets song.
      *
-     * @param currentEpisode the episode
-     * @return the host
+     * @param songName the songName
+     * @return the song
      */
-    public Host getHostEpisode(final Episode currentEpisode) {
-        Host host = null;
-        for (Podcast podcast : podcasts) {
-            for (Episode episode : podcast.getEpisodes()) {
-                if (currentEpisode.equals(episode)) {
-                    host = getHost(podcast.getOwner());
-                }
-            }
-        }
+    public Song getSong(final String songName) {
+        return songs.stream()
+                .filter(song -> song.getName().equals(songName))
+                .findFirst()
+                .orElse(null);
+    }
 
-        return host;
+    /**
+     * Gets episode.
+     *
+     * @param episodeName the episodeName
+     * @return the episode
+     */
+    public Episode getEpisode(final String episodeName) {
+        return podcasts.stream()
+                .flatMap(podcast -> podcast.getEpisodes().stream())
+                .filter(episode -> episode.getName().equals(episodeName))
+                .findFirst()
+                .orElse(null);
     }
 
     /**
@@ -477,6 +506,7 @@ public final class Admin {
                 user.getPlaylists().forEach(playlist -> playlist.removeSong(song));
             });
             songs.remove(song);
+            deletedSongs.add(song);
         }
 
         currentArtist.getAlbums().remove(searchedAlbum);
@@ -510,7 +540,8 @@ public final class Admin {
                                              .map(episodeInput ->
                                                      new Episode(episodeInput.getName(),
                                                                  episodeInput.getDuration(),
-                                                                 episodeInput.getDescription()))
+                                                                 episodeInput.getDescription(),
+                                                                 username))
                                              .collect(Collectors.toList());
 
         Set<String> episodeNames = new HashSet<>();
@@ -780,7 +811,7 @@ public final class Admin {
             }
             case "Host" -> {
                 Episode episode = (Episode) user.getPlayer().getCurrentAudioFile();
-                Host host = getHostEpisode(episode);
+                Host host = getHost(episode.getHost());
                 user.changePage(host.getPage());
             }
             default -> {
@@ -788,6 +819,7 @@ public final class Admin {
             }
         }
 
+        // Resetează istoricul de navigare printre pagini
         user.getPageMemento().resetForwardHistory();
 
         return "%s accessed %s successfully.".formatted(username, nextPage);
@@ -939,7 +971,7 @@ public final class Admin {
      * Această metodă verifică dacă un artist cu numele dat este deja prezent în lista de artiști
      *         din Admin. Dacă artistul nu există, se creează un nou obiect artist și se adaugă
      *         atât în lista generală a artiștilor cât și în lista artiștilor cu melodii ascultate,
-     *         care au cel putin un Play pe platforma.
+     *         care au cel putin un Play sau vânzări pe platforma.
      *
      * @param artistName Numele artistului care trebuie verificat și eventual adăugat.
      */
@@ -972,7 +1004,7 @@ public final class Admin {
         // Distribuie veniturile de la utilizatorii Premium
         for (User user : users) {
             if (user.isPremium()) {
-                RevenueService.getInstance().revenueFromPremiumListens(user);
+                user.getRevenueService().revenueFromPremiumListens(user);
             }
         }
 
@@ -1006,8 +1038,7 @@ public final class Admin {
     }
 
     /**
-     * Această metodă returnează statistici despre activitatea muzicală a utilizatorului, inclusiv
-     *         topul melodiilor, genurilor, artiștilor, albumelor și episoadelor de podcast,
+     * Această metodă returnează statistici despre activitatea muzicală a utilizatorului
      *         în funcție de tipul de utilizator (user, artist sau host).
      * Statisticile sunt calculate de la timestamp-ul 0 până la timestamp-ul curent.
      *
@@ -1019,15 +1050,45 @@ public final class Admin {
         UserAbstract currentUser = getAbstractUser(commandInput.getUsername());
 
         // Selectează strategia de calcul a statisticilor în funcție de tipul utilizatorului
-        StatsTemplate statsTemplate = switch (currentUser.userType()) {
-            case "user" -> new UserStats();
-            case "artist" -> new ArtistStats();
-            case "host" -> new HostStats();
-            default -> throw new IllegalStateException("Unexpected user type: "
-                            + currentUser.userType());
-        };
+        StatsTemplate statsTemplate = StatsFactory.createStatsTemplate(currentUser.userType());
 
         // Calculează și returnează statisticile
         return statsTemplate.calculateStats(currentUser, commandInput);
+    }
+
+    /**
+     * Actualizează recomandările pentru un utilizator specificat.
+     *
+     * @param commandInput Informațiile primite de la comandă.
+     * @return Un string care indică rezultatul operațiunii de actualizare a recomandărilor.
+     */
+    public String updateRecommendations(final CommandInput commandInput) {
+        // Obține tipul de recomandare și numele de utilizator din input
+        String recommendationType = commandInput.getRecommendationType();
+        String username = commandInput.getUsername();
+        UserAbstract currentUser = getAbstractUser(username);
+
+        // Verifică dacă utilizatorul există și dacă este de tipul 'user'
+        if (currentUser == null) {
+            return "The username " + username + " doesn't exist.";
+        } else if (!currentUser.userType().equals("user")) {
+            return username + " is not a normal user.";
+        }
+
+        User user = (User) currentUser;
+
+        // Obține strategia de recomandare specifică tipului dorit
+        RecommendationStrategy strategy = RecommendationFactory
+                .getRecommendationStrategy(recommendationType);
+
+        // Generează recomandările și verifică dacă au fost actualizate cu succes
+        boolean recommendationsUpdated = strategy.generateRecommendation(user);
+
+        // Returnează mesajul corespunzător rezultatului
+        if (recommendationsUpdated) {
+            return "The recommendations for user " + username + " have been updated successfully.";
+        } else {
+            return "No new recommendations were found";
+        }
     }
 }

@@ -786,8 +786,7 @@ public final class CommandRunner {
 
     /**
      * Această metodă returnează statistici despre activitatea muzicală a utilizatorului,
-     *          inclusiv topul melodiilor, genurilor, artiștilor, albumelor și episoadelor
-     *          de podcast, în funcție de tipul de utilizator (user, artist sau host).
+     *          în funcție de tipul de utilizator (user, artist sau host).
      * Statisticile sunt calculate de la timestamp-ul 0 până la timestamp-ul curent.
      *
      * @param commandInput the command input
@@ -1063,6 +1062,46 @@ public final class CommandRunner {
         } else {
             objectNode.put("message", "There are no pages left to go back.");
         }
+
+        return objectNode;
+    }
+
+    /**
+     * Actualizează recomandările pentru un utilizator specific.
+     *
+     * @param commandInput the command input
+     * @return Un ObjectNode care conține detaliile comenzii și rezultatul
+     *            actualizării recomandărilor.
+     */
+    public static ObjectNode updateRecommendations(final CommandInput commandInput) {
+        // Apelează metoda de actualizare a recomandărilor
+        String message = admin.updateRecommendations(commandInput);
+
+        // Creează un nou ObjectNode pentru a stoca detaliile răspunsului
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
+
+        return objectNode;
+    }
+
+    /**
+     * Încarcă recomandările pentru un utilizator specific.
+     *
+     * @param commandInput the command input
+     * @return Un ObjectNode care conține detaliile comenzii și mesajul rezultat.
+     */
+    public static ObjectNode loadRecommendations(final CommandInput commandInput) {
+        User user = admin.getUser(commandInput.getUsername());
+        String message = user.loadRecommendations();
+
+        ObjectNode objectNode = OBJECT_MAPPER.createObjectNode();
+        objectNode.put("command", commandInput.getCommand());
+        objectNode.put("user", commandInput.getUsername());
+        objectNode.put("timestamp", commandInput.getTimestamp());
+        objectNode.put("message", message);
 
         return objectNode;
     }

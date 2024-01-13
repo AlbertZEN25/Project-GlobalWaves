@@ -54,21 +54,4 @@ public final class Album extends AudioCollection {
     public boolean containsTrack(final AudioFile track) {
         return songs.contains(track);
     }
-
-    /**
-     * Calculează numărul total de ascultări pentru toate melodiile dintr-un album.
-     *
-     * @return Numărul total de ascultări ale albumului, calculat ca suma ascultărilor individuale
-     *         ale fiecărei melodii din album.
-     */
-    public int getListenCount() {
-
-        // Parcurgem lista de melodii din album
-        for (Song song : songs) {
-
-            // Adăugăm numărul de ascultări al fiecărei melodii la total
-            totalListens += song.getListenCount();
-        }
-        return totalListens;
-    }
 }

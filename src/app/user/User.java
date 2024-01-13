@@ -68,6 +68,10 @@ public final class User extends UserAbstract implements Subscriber {
     private static final ObjectMapper OBJECT_MAPPER = new ObjectMapper();
     @Getter
     private PageMemento pageMemento = new PageMemento();
+    @Setter
+    private String lastRecommendationType;
+    @Getter
+    private RevenueService revenueService;
 
 
     /**
@@ -84,6 +88,7 @@ public final class User extends UserAbstract implements Subscriber {
         followedPlaylists = new ArrayList<>();
         player = new Player();
         searchBar = new SearchBar(username);
+        revenueService = new RevenueService(0);
         lastSearched = false;
         status = true;
         isPremium = false;
@@ -169,27 +174,16 @@ public final class User extends UserAbstract implements Subscriber {
     }
 
     /**
-     * Load string.
+     * Procesează și redă un fișier audio specificat, gestionând logistica de redare și de urmărire.
      *
-     * @return the string
+     * @param audioFileEntry Intrarea bibliotecii care reprezintă sursa audio
+     * @param sourceType Tipul sursei audio
      */
-    public String load() {
-        if (!status) {
-            return "%s is offline.".formatted(getUsername());
-        }
+    private void processAndPlayAudioFile(final LibraryEntry audioFileEntry,
+                                         final String sourceType) {
 
-        if (searchBar.getLastSelected() == null) {
-            return "Please select a source before attempting to load.";
-        }
-
-        if (!searchBar.getLastSearchType().equals("song")
-            && ((AudioCollection) searchBar.getLastSelected()).getNumberOfTracks() == 0) {
-            return "You can't load an empty audio collection!";
-        }
-
-        player.setSource(searchBar.getLastSelected(), searchBar.getLastSearchType());
+        player.setSource(audioFileEntry, sourceType);
         player.getSource().resetNextAdBreak();
-        searchBar.clearSelection();
 
         player.pause();
 
@@ -223,6 +217,29 @@ public final class User extends UserAbstract implements Subscriber {
                 songsListenedFree.add(currentSong);
             }
         }
+    }
+
+    /**
+     * Load string.
+     *
+     * @return the string
+     */
+    public String load() {
+        if (!status) {
+            return "%s is offline.".formatted(getUsername());
+        }
+
+        if (searchBar.getLastSelected() == null) {
+            return "Please select a source before attempting to load.";
+        }
+
+        if (!searchBar.getLastSearchType().equals("song")
+            && ((AudioCollection) searchBar.getLastSelected()).getNumberOfTracks() == 0) {
+            return "You can't load an empty audio collection!";
+        }
+
+        player.setSource(searchBar.getLastSelected(), searchBar.getLastSearchType());
+        processAndPlayAudioFile(searchBar.getLastSelected(), searchBar.getLastSearchType());
 
         return "Playback loaded successfully.";
     }
@@ -650,11 +667,8 @@ public final class User extends UserAbstract implements Subscriber {
 
     /**
      * Cumpără un abonament Premium pentru utilizator.
-     * Această metodă schimbă statusul utilizatorului de la normal la Premium dacă acesta nu este
-     *            deja un utilizator Premium.
      *
-     * @return Un mesaj care indică dacă utilizatorul a cumpărat cu succes abonamentul Premium sau
-     *              dacă era deja un utilizator Premium.
+     * @return Mesajul rezultat în urma comenzii
      */
     public String buyPremium() {
         // Verifică dacă utilizatorul este deja un utilizator Premium
@@ -671,12 +685,8 @@ public final class User extends UserAbstract implements Subscriber {
 
     /**
      * Anulează abonamentul Premium al utilizatorului.
-     * Această metodă schimbă statusul utilizatorului de la Premium la normal și efectuează
-     *           operații necesare, cum ar fi distribuirea veniturilor acumulate din ascultările
-     *           efectuate în mod Premium și resetarea listei de melodii ascultate.
      *
-     * @return Un mesaj care indică dacă utilizatorul și-a anulat cu succes abonamentul Premium sau
-     *              dacă nu era un utilizator Premium.
+     * @return Mesajul rezultat în urma comenzii.
      */
     public String cancelPremium() {
         // Verifică dacă utilizatorul este în prezent un utilizator Premium
@@ -687,7 +697,7 @@ public final class User extends UserAbstract implements Subscriber {
         isPremium = false;
 
         // Distribuie veniturile acumulate din ascultările utilizatorului Premium
-        RevenueService.getInstance().revenueFromPremiumListens(this);
+        revenueService.revenueFromPremiumListens(this);
 
         // Golește harta care conține melodiile ascultate în mod Premium
         songsListenedPremium.clear();
@@ -697,8 +707,7 @@ public final class User extends UserAbstract implements Subscriber {
     }
 
     /**
-     * Gestionează adăugarea unei reclame în coada de redare a utilizatorului și
-     *         calculează distribuția veniturilor pentru artiști.
+     * Gestionează adăugarea unei reclame în coada de redare a utilizatorului.
      *
      * @param adPrice Prețul asociat reclamei care va fi redată.
      * @return String Un mesaj care indică dacă reclama a fost adăugată cu succes.
@@ -712,7 +721,7 @@ public final class User extends UserAbstract implements Subscriber {
             player.getSource().setNextSongToAdBreak();
 
             // Setează venitul din reclama curentă
-            RevenueService.getInstance().setAdPrice(adPrice);
+            revenueService.setAdPrice(adPrice);
 
             return "Ad inserted successfully.";
         }
@@ -871,5 +880,46 @@ public final class User extends UserAbstract implements Subscriber {
         }
         // Returnează false dacă nu există o pagină următoare în istoric
         return false;
+    }
+
+    /**
+     * Încarcă și redă recomandările bazate pe ultimul tip de recomandare selectat de utilizator.
+     *
+     * @return Un mesaj care indică rezultatul procesului de încărcare a recomandărilor.
+     */
+    public String loadRecommendations() {
+        // Verifică dacă utilizatorul este online
+        if (!status) {
+            return getUsername() + " is offline.";
+        }
+
+        // Verifică dacă există un tip de recomandare setat
+        if (lastRecommendationType == null) {
+            return "No recommendations available.";
+        }
+
+        // Procesează tipul de recomandare și inițiază redarea corespunzătoare
+        switch (lastRecommendationType) {
+            case "songRecommendation":
+                Song songRecommendation = homePage.getSongRecommendation();
+                if (songRecommendation != null) {
+                    processAndPlayAudioFile(songRecommendation, "song");
+                } else {
+                    return "No recommendations available.";
+                }
+                break;
+            case "playlistRecommendation":
+                Playlist playlistRecommendation = homePage.getPlaylistRecommendation();
+                if (playlistRecommendation != null) {
+                    processAndPlayAudioFile(playlistRecommendation, "playlist");
+                } else {
+                    return "No recommendations available.";
+                }
+                break;
+            default:
+                return "Invalid recommendation type.";
+        }
+
+        return "Playback loaded successfully.";
     }
 }

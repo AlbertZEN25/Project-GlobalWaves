@@ -1,10 +1,5 @@
 package app.user;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import app.audio.Collections.Album;
 import app.audio.Collections.AlbumOutput;
 import app.audio.Files.Song;
@@ -12,6 +7,11 @@ import app.pages.ArtistPage;
 import app.pages.pageContent.Event;
 import app.pages.pageContent.Merchandise;
 import lombok.Getter;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.List;
 
 /**
  * The type Artist.
@@ -114,8 +114,6 @@ public final class Artist extends ContentCreator {
 
     /**
      * Adaugă venituri din melodii la totalul artistului.
-     * Această metodă crește veniturile totale ale artistului din cântece prin adăugarea
-     *            sumei specificate.
      *
      * @param revenue Veniturile obținute de la melodia curentă.
      */
@@ -125,8 +123,6 @@ public final class Artist extends ContentCreator {
 
     /**
      * Adaugă venituri din vânzarea de merchandise la totalul artistului.
-     * Această metodă crește veniturile totale ale artistului din merchandise prin adăugarea
-     *            sumei specificate.
      *
      * @param revenue Veniturile obținute din vânzarea unui produs de merch.
      */
@@ -136,11 +132,6 @@ public final class Artist extends ContentCreator {
 
     /**
      * Determină melodia cea mai profitabilă a unui artist.
-     * <p>
-     * Această metodă analizează un map care conține veniturile asociate fiecărei piese a artistului
-     *         și returnează titlul piesei cu cel mai mare venit. Dacă nu există nicio piesă sau
-     *         dacă veniturile sunt goale, returnează "N/A".
-     * </p>
      *
      * @return Titlul piesei cu cel mai mare venit, sau "N/A" dacă nu există date.
      */

@@ -5,8 +5,6 @@ import lombok.Getter;
 /**
  * Clasa care reprezintă veniturile unui artist, inclusiv veniturile din melodii, merchandising,
  *          și alte informații relevante precum cea mai profitabilă melodie.
- * Această clasă este utilizată pentru a stoca și gestiona veniturile generate de un artist
- *          în cadrul platformei.
  */
 @Getter
 public class ArtistRevenue {

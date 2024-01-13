@@ -11,6 +11,7 @@ import java.util.Set;
 @Getter
 public abstract class AudioFile extends LibraryEntry {
 
+    private final String owner;
     private final Integer duration;
     // Nr. de ascultari al fișier-ului curent (in total)
     private Integer listenCount;
@@ -19,9 +20,10 @@ public abstract class AudioFile extends LibraryEntry {
     // Set cu utilizatorii unici care au ascultat fișierul audio
     private final Set<String> uniqueListeners = new HashSet<>();
 
-    public AudioFile(final String name, final Integer duration) {
+    public AudioFile(final String name, final Integer duration, final String owner) {
         super(name);
         this.duration = duration;
+        this.owner = owner;
         this.listenCount = 0;
     }
 

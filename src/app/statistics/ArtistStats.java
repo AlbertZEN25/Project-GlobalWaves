@@ -1,6 +1,5 @@
 package app.statistics;
 
-import app.audio.Collections.Album;
 import app.audio.Files.Song;
 import app.user.UserAbstract;
 import app.user.Artist;
@@ -14,7 +13,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.HashSet;
-
 
 /**
  * Clasa ArtistStats este responsabilă pentru calcularea și adăugarea statisticilor specifice
@@ -84,14 +82,27 @@ public class ArtistStats extends StatsTemplate {
         // Inițializează o hartă pentru a stoca albumele și numărul lor de ascultări
         Map<String, Integer> topAlbums = new HashMap<>();
 
-        // Parcurge fiecare album din lista de albume a artistului
-        for (Album album : artist.getAlbums()) {
-            // Obține numărul total de ascultări pentru fiecare album
-            int listenCount = album.getListenCount();
+        // Listă pentru a stoca toate melodiile artistului
+        List<Song> allArtistSongs = new ArrayList<>();
 
-            // Include doar albumele cu număr pozitiv de ascultări
+        // Obtine toate melodiile artistului  curent
+        for (Song song : getAllSongs()) {
+            if (song.getArtist().equals(artist.getUsername())) {
+                allArtistSongs.add(song);
+            }
+        }
+
+        // Parcurge toate melodiile artisului
+        for (Song song : allArtistSongs) {
+            // Obține mapa cu numărul de ascultări pentru fiecare utilizator
+            Map<String, Integer> listens = song.getUserListenCounts();
+
+            // Calculează numărul total de ascultări ale melodiei
+            int listenCount = listens.values().stream().mapToInt(Integer::intValue).sum();
+
+            // Adaugă numărul de ascultări la totalul albumului dacă acesta este pozitiv
             if (listenCount > 0) {
-                topAlbums.put(album.getName(), listenCount);
+                topAlbums.merge(song.getAlbum(), listenCount, Integer::sum);
             }
         }
 
@@ -102,8 +113,6 @@ public class ArtistStats extends StatsTemplate {
 
     /**
      * Calculează și returnează o hartă a melodiilor artistului și numărului lor de ascultări.
-     * Această metodă parcurge toate albumele unui artist și sumează numărul de ascultări
-     * pentru fiecare melodie, creând astfel o hartă cu melodiile și numărul total de ascultări.
      *
      * @param artist Artist-ul pentru care se calculeaza top-ul melodiilor acestuia.
      * @return O hartă sortată care conține perechi cheie-valoare,
@@ -113,16 +122,24 @@ public class ArtistStats extends StatsTemplate {
         // Map pentru a stoca numărul de ascultări pentru fiecare melodie
         Map<String, Integer> topSongs = new HashMap<>();
 
-        // Iterează prin toate albumele artistului și melodiile lor
-        for (Album album : artist.getAlbums()) {
-            for (Song song : album.getSongs()) {
-                // Obține numărul de ascultări pentru fiecare melodie
-                int listenCount = song.getListenCount();
+        // Listă pentru a stoca toate melodiile artistului
+        List<Song> allArtistSongs = new ArrayList<>();
 
-                // Adaugă sau actualizează numărul de ascultări în map
-                topSongs.merge(song.getName(), listenCount, Integer::sum);
+        // Obtine toate melodiile artistului curent
+        for (Song song : getAllSongs()) {
+            if (song.getArtist().equals(artist.getUsername())) {
+                allArtistSongs.add(song);
             }
         }
+
+        for (Song song : allArtistSongs) {
+            // Obține numărul de ascultări pentru fiecare melodie
+            int listenCount = song.getListenCount();
+
+            // Adaugă sau actualizează numărul de ascultări în map
+            topSongs.merge(song.getName(), listenCount, Integer::sum);
+        }
+
 
         // Sortează harta în funcție de numărul de ascultări, descrescător
         // În caz de egalitate, sortează după numele melodiei
@@ -134,18 +151,24 @@ public class ArtistStats extends StatsTemplate {
      *            pe numărul de ascultări.
      *
      * @param artist Artist-ul pentru care se calculeaza top-ul fanilor acestuia.
-     * @return O listă de {@link String} care conține topul utilizatorilor, sortați în funcție de
-     *          numărul total de ascultări ale melodiilor artistului cur
+     * @return O listă String care conține topul utilizatorilor
      */
     public List<String> getTopFans(final Artist artist) {
         // Map pentru a stoca numărul de ascultări pentru fiecare fan
         Map<String, Integer> topFanListens = new HashMap<>();
 
-        // Obține toate melodiile artistului curent
-        List<Song> songs = artist.getAllSongs();
+        // Listă pentru a stoca toate melodiile artistului
+        List<Song> allArtistSongs = new ArrayList<>();
+
+        // Obtine toate melodiile artistului  curent
+        for (Song song : getAllSongs()) {
+            if (song.getArtist().equals(artist.getUsername())) {
+                allArtistSongs.add(song);
+            }
+        }
 
         // Parcurgem toate melodiile artistului
-        for (Song song : songs) {
+        for (Song song : allArtistSongs) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator al melodiei curente
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -161,12 +184,6 @@ public class ArtistStats extends StatsTemplate {
 
     /**
      * Calculează și returnează numărul total de ascultători unici ai unui artist.
-     * Această metodă agregă toți ascultătorii unici de la toate melodiile artistului,
-     * oferind astfel un număr total de ascultători unici pentru întreaga sa colecție de muzică.
-     *
-     * <p>Un ascultător unic este definit ca un utilizator care a ascultat cel puțin o dată oricare
-     * dintre melodiile artistului. Aceasta include ascultări de la toate melodiile artistului,
-     * indiferent dacă sunt ascultate o dată sau de mai multe ori.</p>
      *
      * @param artist Artist-ul pentru care se calculeaza nr. total de ascultători unici.
      * @return Numărul total de ascultători unici ai artistului curent.
@@ -175,11 +192,18 @@ public class ArtistStats extends StatsTemplate {
         // Set pentru a stoca ascultătorii unici ai artistului
         Set<String> uniqueListeners = new HashSet<>();
 
-        // Obține toate melodiile artistului
-        List<Song> songs = artist.getAllSongs();
+        // Listă pentru a stoca toate melodiile artistului
+        List<Song> allArtistSongs = new ArrayList<>();
+
+        // Obtine toate melodiile artistului  curent
+        for (Song song : getAllSongs()) {
+            if (song.getArtist().equals(artist.getUsername())) {
+                allArtistSongs.add(song);
+            }
+        }
 
         // Parcurgem toate melodiile artistului
-        for (Song song : songs) {
+        for (Song song : allArtistSongs) {
             // Obține setul de ascultători unici pentru fiecare melodie
             Set<String> listeners = song.getUniqueListeners();
 

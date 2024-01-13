@@ -78,7 +78,7 @@ public class UserStats extends StatsTemplate {
         Map<String, Integer> topArtists = new HashMap<>();
 
         // Iterăm prin toate melodiile și obținem numărul de ascultări pentru utilizatorul curent
-        for (Song song : adminInstance.getSongs()) {
+        for (Song song : getAllSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -98,9 +98,6 @@ public class UserStats extends StatsTemplate {
     /**
      * Calculează și returnează o hartă a melodiilor și numărului lor de ascultări de către un
      *             utilizator specific.
-     * Această metodă parcurge toate melodiile și contorizează numărul de ascultări pe care
-     *             fiecare melodie le-a primit de la utilizatorul dat, creând astfel o hartă
-     *             cu melodiile și numărul total de ascultări.
      *
      * @param user Utilizatorul pentru care se calculează numărul de ascultări ale melodiilor.
      * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
@@ -111,7 +108,7 @@ public class UserStats extends StatsTemplate {
         Map<String, Integer> topSongs = new HashMap<>();
 
         // Iterăm prin toate melodiile și obținem numărul de ascultări pentru utilizatorul curent
-        for (Song song : adminInstance.getSongs()) {
+        for (Song song : getAllSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -132,9 +129,6 @@ public class UserStats extends StatsTemplate {
     /**
      * Calculează și returnează o hartă a albumelor și numărului lor de ascultări de către
      *             un utilizator specific.
-     * Această metodă parcurge toate melodiile și contorizează numărul de ascultări pentru
-     *             fiecare album pe care fiecare melodie le-a primit de la utilizatorul dat,
-     *             creând astfel o hartă cu albumele și numărul total de ascultări.
      *
      * @param user Utilizatorul pentru care se calculează numărul de ascultări ale albumelor.
      * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
@@ -145,7 +139,7 @@ public class UserStats extends StatsTemplate {
         Map<String, Integer> topAlbums = new HashMap<>();
 
         // Iterează prin toate melodiile
-        for (Song song : adminInstance.getSongs()) {
+        for (Song song : getAllSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -169,9 +163,6 @@ public class UserStats extends StatsTemplate {
     /**
      * Calculează și returnează o hartă a genurilor muzicale și numărului lor de ascultări
      *             de către un utilizator specific.
-     * Această metodă parcurge toate melodiile și contorizează numărul de ascultări pentru
-     *            fiecare gen muzical pe care fiecare melodie le-a primit de la utilizatorul dat,
-     *            creând astfel o hartă cu genurile și numărul total de ascultări.
      *
      * @param user User-ul pentru care se calculează numărul de ascultări ale genurilor muzicale.
      * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
@@ -182,7 +173,7 @@ public class UserStats extends StatsTemplate {
         Map<String, Integer> topGenres = new HashMap<>();
 
         // Iterează prin toate melodiile
-        for (Song song : adminInstance.getSongs()) {
+        for (Song song : getAllSongs()) {
             // Obține mapa cu numărul de ascultări pentru fiecare utilizator
             Map<String, Integer> listens = song.getUserListenCounts();
 
@@ -206,9 +197,6 @@ public class UserStats extends StatsTemplate {
     /**
      * Calculează și returnează o hartă a episoadelor și numărului lor de ascultări
      *             de către un utilizator specific.
-     * Această metodă parcurge toate podcasturile si episoadele acestora și contorizează numărul
-     *             de ascultări pe care fiecare episod le-a primit de la utilizatorul dat, creând
-     *             astfel o hartă cu episoadele și numărul total de ascultări.
      *
      * @param user Utilizatorul pentru care se calculează numărul de ascultări ale episoadelor.
      * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este

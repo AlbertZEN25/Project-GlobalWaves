@@ -23,7 +23,6 @@ public class HostStats extends StatsTemplate {
 
     /**
      * Adaugă statisticile specifice unui Host într-un ObjectNode.
-     * Include statistici precum episoadele de top și numărul total de ascultători.
      *
      * @param resultNode Nodul ObjectNode în care se adaugă statisticile.
      * @param currentUser Utilizatorul curent, presupus a fi un Host.
@@ -69,9 +68,6 @@ public class HostStats extends StatsTemplate {
 
     /**
      * Calculează și returnează o hartă a episoadelor hostului și numărului lor de ascultări.
-     * Această metodă parcurge toate podcasturile unui host și sumează numărul de ascultări
-     *         pentru fiecare episod, creând astfel o hartă cu episoadele și numărul total
-     *         de ascultări.
      *
      * @param host Host-ul pentru care se calculează topul episoadelor.
      * @return O hartă sortată care conține perechi cheie-valoare, unde cheia este numele
@@ -106,13 +102,7 @@ public class HostStats extends StatsTemplate {
 
     /**
      * Calculează și returnează numărul total de ascultători unici ai unui host.
-     * Această metodă agregă toți ascultătorii unici de la toate episoadele hostului,
-     *         oferind astfel un număr total de ascultători unici pentru întreaga sa
-     *         colecție de podcast-uri.
      *
-     * <p>Un ascultător unic este definit ca un utilizator care a ascultat cel puțin o dată oricare
-     * dintre episoadele hostului. Aceasta include ascultări de la toate episoadele hostului,
-     * indiferent dacă sunt ascultate o dată sau de mai multe ori.</p>
      *
      * @param host Host-ul pentru care se calculeaza nr. total de ascultători unici.
      * @return Numărul total de ascultători unici ai hostului curent.
@@ -120,6 +110,8 @@ public class HostStats extends StatsTemplate {
     public int getListenersCount(final Host host) {
         // Set pentru a stoca ascultătorii unici ai hostului
         Set<String> uniqueListeners = new HashSet<>();
+
+        // Set<String> uniqueListeners = host.getUniqueListeners();
 
         // Parcurgem toate podcasturile si episoadele
         for (Podcast podcast : adminInstance.getPodcasts()) {
